@@ -1,0 +1,7 @@
+<div class="landing-page-container">
+  <div class="menu-items-container">
+    <div class="menu-item button" *ngFor="let menu of menuItems" (click)="onClickedMenu(menu)">
+      <span>{{ menu.name }}</span>
+    </div>
+  </div>
+</div>

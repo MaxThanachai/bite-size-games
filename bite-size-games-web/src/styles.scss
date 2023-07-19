@@ -1,0 +1,43 @@
+/* You can add global styles to this file, and also import other style files */
+
+$color-background-gray: #1f1f1f;
+$color-background-dark-gray: #201c1c;
+
+$color-highlight-gray: #373c3f;
+$color-highlight-dark-gray: #2b2d2e;
+
+$color-text-gray: #a8a8a8;
+$color-text-light-gray: #cccccc;
+$color-text-light-blue: #9ddcfe;
+$color-text-custard: #d6b97c;
+$color-text-pale-green: #b0c8a4;
+$color-text-bright-green: #73c991;
+$color-text-dark-green: #5f874e;
+$color-text-red: #f07c6d;
+
+
+body {
+  margin: 0;
+  background-color: $color-background-gray;
+  color: white;
+  width: 100vw;
+  height: 100vh;
+}
+
+.button {
+  cursor: pointer;
+  background-color: $color-background-dark-gray;
+  border-radius: 1rem;
+  margin-inline: auto;
+  display: flex;
+  span {
+    margin: auto;
+  }
+}
+.button:hover {
+  background-color: $color-highlight-dark-gray;
+}
+.button:active {
+  background-color: $color-highlight-gray;
+}
+
