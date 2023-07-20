@@ -2,9 +2,24 @@
   <div class="checker-board">
     <ng-container *ngFor="let row of [].constructor(8); let y = index">
       <ng-container *ngFor="let column of [].constructor(8); let x = index">
-        <div class="grid white" [ngClass]="{black: x % 2 === 0 && y % 2 === 0 || x % 2 !== 0 && y % 2 !== 0}">
-          <div *ngIf="getPieceAt(x, y)" class="piece" [ngClass]="{black: getPieceAt(x, y)?.player === 'black', white: getPieceAt(x, y)?.player === 'white'}">
-          </div>
+        <div
+          class="grid"
+          [ngClass]="{
+            black: (x % 2 === 0 && y % 2 === 0) || (x % 2 !== 0 && y % 2 !== 0),
+            'highlight-dark':
+              selectingPiece?.x === x && selectingPiece?.y === y,
+            highlight: isHighlightedGrid(x, y)
+          }"
+          (click)="onTapGrid(x, y)"
+        >
+          <div
+            *ngIf="getPieceAt(x, y)"
+            class="piece"
+            [ngClass]="{
+              black: getPieceAt(x, y)?.player === 'black',
+              white: getPieceAt(x, y)?.player === 'white'
+            }"
+          ></div>
         </div>
       </ng-container>
     </ng-container>

@@ -1,4 +1,4 @@
-@import '../../../styles.scss';
+@import "../../../styles.scss";
 
 .checker-board-container {
   width: 100%;
@@ -18,11 +18,15 @@
     align-items: center;
     width: 100%;
     height: 100%;
+    background-color: white;
     &.black {
-      background-color: $color-text-gray !important;
+      background-color: $color-text-gray;
     }
-    &.white {
-      background-color: white;
+    &.highlight {
+      background-color: $color-text-bright-green !important;
+    }
+    &.highlight-dark {
+      background-color: $color-text-dark-green !important;
     }
     .piece {
       min-width: 80%;

@@ -1,38 +1,62 @@
 import { Component, OnInit } from '@angular/core';
 
-interface IPiece {
+interface IPiece extends IPosition {
   player: 'black' | 'white';
+  isPromoted: boolean;
+}
+
+interface IPosition {
   x: number;
   y: number;
-  isPromoted: boolean;
 }
 
 @Component({
   selector: 'app-checker',
   templateUrl: './checkers.component.html',
-  styleUrls: ['./checkers.component.scss']
+  styleUrls: ['./checkers.component.scss'],
 })
 export class CheckersComponent implements OnInit {
   pieces: IPiece[] = [];
+  selectingPiece?: IPiece;
+  highlightedGrids: IPosition[] = [];
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit(): void {
     this.instantiatePieces();
   }
-  
+
   instantiatePieces() {
-    for (let i=0; i<8; i++) {
-      this.pieces.push({player: 'black', isPromoted: false, x: i, y: 6 + (i % 2)});
+    for (let i = 0; i < 8; i++) {
+      this.pieces.push({
+        player: 'black',
+        isPromoted: false,
+        x: i,
+        y: 6 + (i % 2),
+      });
     }
-    for (let i=0; i<8; i++) {
-      this.pieces.push({player: 'white', isPromoted: false, x: i, y: i % 2});
+    for (let i = 0; i < 8; i++) {
+      this.pieces.push({ player: 'white', isPromoted: false, x: i, y: i % 2 });
     }
   }
 
-  getPieceAt(x: number, y: number): IPiece | null{
-    const index = this.pieces.findIndex(piece => piece.x === x && piece.y === y);
+  isHighlightedGrid(x: number, y: number): boolean {
+    return Boolean(
+      this.highlightedGrids.find((grid) => grid.x === x && grid.y === y)
+    );
+  }
+
+  getPieceAt(x: number, y: number): IPiece | null {
+    const index = this.pieces.findIndex(
+      (piece) => piece.x === x && piece.y === y
+    );
     if (index === -1) return null;
     return this.pieces[index];
+  }
+
+  onTapGrid(x: number, y: number): void {
+    const piece = this.getPieceAt(x, y);
+    if (piece) this.selectingPiece = piece;
+    else this.selectingPiece = undefined;
   }
 }
