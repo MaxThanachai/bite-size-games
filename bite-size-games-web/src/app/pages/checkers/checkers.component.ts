@@ -28,7 +28,7 @@ export class CheckersComponent implements OnInit {
     this.instantiatePieces();
   }
 
-  instantiatePieces() {
+  instantiatePieces(): void {
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
         player: 'black',
@@ -48,6 +48,24 @@ export class CheckersComponent implements OnInit {
     );
   }
 
+  drawPossibleMoveGrid(selectedPiece: IPiece): void {
+    this.highlightedGrids = [];
+    const direction = this.getDirection(selectedPiece);
+    const range = selectedPiece.isPromoted ? 7 : 1;
+    for (let i = 1; i <= range; i++) {
+      const xVariance = [selectedPiece.x - i, selectedPiece.x + i];
+      const y = selectedPiece.y + 1 * direction;
+      const isContainPieceL = Boolean(this.getPieceAt(xVariance[0], y));
+      const isContainPieceR = Boolean(this.getPieceAt(xVariance[1], y));
+      if (!isContainPieceL) {
+        this.highlightedGrids.push({ x: xVariance[0], y });
+      }
+      if (!isContainPieceR) {
+        this.highlightedGrids.push({ x: xVariance[1], y });
+      }
+    }
+  }
+
   getPieceAt(x: number, y: number): IPiece | null {
     const index = this.pieces.findIndex(
       (piece) => piece.x === x && piece.y === y
@@ -64,9 +82,14 @@ export class CheckersComponent implements OnInit {
       this.logMessages.push(
         `selecting ${x}, ${y} ${piece.player} ${piece.isPromoted ? '*' : ''}`
       );
+      this.drawPossibleMoveGrid(piece);
     } else if (this.selectingPiece !== undefined) {
       this.logMessages.push(`Deselected`);
       this.selectingPiece = undefined;
     }
+  }
+
+  getDirection(piece: IPiece): number {
+    return piece.player === 'black' ? -1 : 1;
   }
 }
