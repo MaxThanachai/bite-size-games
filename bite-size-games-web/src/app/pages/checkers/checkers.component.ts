@@ -16,6 +16,8 @@ interface IPosition {
   styleUrls: ['./checkers.component.scss'],
 })
 export class CheckersComponent implements OnInit {
+  logMessages: string[] = [];
+
   pieces: IPiece[] = [];
   selectingPiece?: IPiece;
   highlightedGrids: IPosition[] = [];
@@ -55,8 +57,16 @@ export class CheckersComponent implements OnInit {
   }
 
   onTapGrid(x: number, y: number): void {
+    this.logMessages.push(`tap ${x}, ${y}`);
     const piece = this.getPieceAt(x, y);
-    if (piece) this.selectingPiece = piece;
-    else this.selectingPiece = undefined;
+    if (piece) {
+      this.selectingPiece = piece;
+      this.logMessages.push(
+        `selecting ${x}, ${y} ${piece.player} ${piece.isPromoted ? '*' : ''}`
+      );
+    } else if (this.selectingPiece !== undefined) {
+      this.logMessages.push(`Deselected`);
+      this.selectingPiece = undefined;
+    }
   }
 }

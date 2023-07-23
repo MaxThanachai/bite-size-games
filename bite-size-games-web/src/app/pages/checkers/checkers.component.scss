@@ -4,6 +4,7 @@
   width: 100%;
   height: 100%;
   background-color: white;
+  display: flex;
 }
 
 .checker-board {
@@ -40,5 +41,17 @@
         background-color: $color-text-light-gray;
       }
     }
+  }
+}
+
+.log-container {
+  background-color: $color-background-gray;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  span {
+    color: $color-text-gray;
+    font-size: $font-small;
   }
 }
