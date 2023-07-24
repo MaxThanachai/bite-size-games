@@ -16,8 +16,8 @@
             *ngIf="getPieceAt(x, y)"
             class="piece"
             [ngClass]="{
-              black: getPieceAt(x, y)?.player === 'black',
-              white: getPieceAt(x, y)?.player === 'white'
+              black: getPieceAt(x, y)?.player?.valueOf() === 'black',
+              white: getPieceAt(x, y)?.player?.valueOf() === 'white'
             }"
           ></div>
         </div>

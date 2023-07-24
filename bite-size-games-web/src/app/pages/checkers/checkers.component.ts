@@ -1,8 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 
 interface IPiece extends IPosition {
-  player: 'black' | 'white';
+  player: PLAYER;
   isPromoted: boolean;
+}
+
+enum PLAYER {
+  BLACK = 'black',
+  WHITE = 'white',
 }
 
 interface IPosition {
@@ -19,26 +24,34 @@ export class CheckersComponent implements OnInit {
   logMessages: string[] = [];
 
   pieces: IPiece[] = [];
-  selectingPiece?: IPiece;
+  selectingPiece: IPiece | null = null;
   possibleMoveGrids: IPosition[] = [];
+  currentTurn: PLAYER = PLAYER.BLACK;
 
   constructor() {}
 
   ngOnInit(): void {
     this.instantiatePieces();
+    this.logMessages.push(`Game start!`);
+    this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
   }
 
   instantiatePieces(): void {
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
-        player: 'black',
+        player: PLAYER.BLACK,
         isPromoted: false,
         x: i,
         y: 6 + (i % 2),
       });
     }
     for (let i = 0; i < 8; i++) {
-      this.pieces.push({ player: 'white', isPromoted: false, x: i, y: i % 2 });
+      this.pieces.push({
+        player: PLAYER.WHITE,
+        isPromoted: false,
+        x: i,
+        y: i % 2,
+      });
     }
   }
 
@@ -67,6 +80,10 @@ export class CheckersComponent implements OnInit {
     }
   }
 
+  getDirection(piece: IPiece): number {
+    return piece.player === 'black' ? -1 : 1;
+  }
+
   getPieceAt(x: number, y: number): IPiece | null {
     const index = this.pieces.findIndex(
       (piece) => piece.x === x && piece.y === y
@@ -78,26 +95,39 @@ export class CheckersComponent implements OnInit {
   onTapGrid(x: number, y: number): void {
     this.logMessages.push(`tap ${x}, ${y}`);
     const piece = this.getPieceAt(x, y);
-    if (piece) {
-      this.selectingPiece = piece;
-      this.logMessages.push(
-        `selecting ${x}, ${y} ${piece.player} ${piece.isPromoted ? '*' : ''}`
-      );
-      this.drawPossibleMoveGrid(piece);
-    } else if (
-      this.selectingPiece !== undefined &&
-      this.isPossibleMoveGrid(x, y)
-    ) {
-      this.selectingPiece.x = x;
-      this.selectingPiece.y = y;
-      this.selectingPiece = undefined;
-    } else if (this.selectingPiece !== undefined) {
-      this.logMessages.push(`Deselected`);
-      this.selectingPiece = undefined;
+    if (piece && piece.player === this.currentTurn) {
+      this.selectPiece(piece);
+    } else if (this.selectingPiece !== null && this.isPossibleMoveGrid(x, y)) {
+      this.movePieceAndProgressToNextTurn(x, y);
+    } else if (this.selectingPiece !== null) {
+      this.deselectPiece();
     }
   }
 
-  getDirection(piece: IPiece): number {
-    return piece.player === 'black' ? -1 : 1;
+  selectPiece(piece: IPiece): void {
+    this.selectingPiece = piece;
+    this.drawPossibleMoveGrid(piece);
+    this.logMessages.push(
+      `selecting ${piece.x}, ${piece.y} ${piece.player} ${
+        piece.isPromoted ? '*' : ''
+      }`
+    );
+  }
+
+  deselectPiece(): void {
+    this.selectingPiece = null;
+    this.possibleMoveGrids = [];
+    this.logMessages.push(`Deselected`);
+  }
+
+  movePieceAndProgressToNextTurn(x: number, y: number): void {
+    if (!this.selectingPiece) return;
+    this.selectingPiece.x = x;
+    this.selectingPiece.y = y;
+    this.selectingPiece = null;
+    this.currentTurn =
+      this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
+    this.possibleMoveGrids = [];
+    this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
   }
 }
