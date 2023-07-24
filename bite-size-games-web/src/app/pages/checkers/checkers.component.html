@@ -8,7 +8,7 @@
             black: (x % 2 === 0 && y % 2 === 0) || (x % 2 !== 0 && y % 2 !== 0),
             'highlight-dark':
               selectingPiece?.x === x && selectingPiece?.y === y,
-            highlight: isHighlightedGrid(x, y)
+            highlight: isPossibleMoveGrid(x, y)
           }"
           (click)="onTapGrid(x, y)"
         >

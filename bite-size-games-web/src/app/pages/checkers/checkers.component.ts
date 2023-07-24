@@ -20,7 +20,7 @@ export class CheckersComponent implements OnInit {
 
   pieces: IPiece[] = [];
   selectingPiece?: IPiece;
-  highlightedGrids: IPosition[] = [];
+  possibleMoveGrids: IPosition[] = [];
 
   constructor() {}
 
@@ -42,14 +42,15 @@ export class CheckersComponent implements OnInit {
     }
   }
 
-  isHighlightedGrid(x: number, y: number): boolean {
+  isPossibleMoveGrid(x: number, y: number): boolean {
+    if (this.selectingPiece === undefined) return false;
     return Boolean(
-      this.highlightedGrids.find((grid) => grid.x === x && grid.y === y)
+      this.possibleMoveGrids.find((grid) => grid.x === x && grid.y === y)
     );
   }
 
   drawPossibleMoveGrid(selectedPiece: IPiece): void {
-    this.highlightedGrids = [];
+    this.possibleMoveGrids = [];
     const direction = this.getDirection(selectedPiece);
     const range = selectedPiece.isPromoted ? 7 : 1;
     for (let i = 1; i <= range; i++) {
@@ -58,10 +59,10 @@ export class CheckersComponent implements OnInit {
       const isContainPieceL = Boolean(this.getPieceAt(xVariance[0], y));
       const isContainPieceR = Boolean(this.getPieceAt(xVariance[1], y));
       if (!isContainPieceL) {
-        this.highlightedGrids.push({ x: xVariance[0], y });
+        this.possibleMoveGrids.push({ x: xVariance[0], y });
       }
       if (!isContainPieceR) {
-        this.highlightedGrids.push({ x: xVariance[1], y });
+        this.possibleMoveGrids.push({ x: xVariance[1], y });
       }
     }
   }
@@ -83,6 +84,13 @@ export class CheckersComponent implements OnInit {
         `selecting ${x}, ${y} ${piece.player} ${piece.isPromoted ? '*' : ''}`
       );
       this.drawPossibleMoveGrid(piece);
+    } else if (
+      this.selectingPiece !== undefined &&
+      this.isPossibleMoveGrid(x, y)
+    ) {
+      this.selectingPiece.x = x;
+      this.selectingPiece.y = y;
+      this.selectingPiece = undefined;
     } else if (this.selectingPiece !== undefined) {
       this.logMessages.push(`Deselected`);
       this.selectingPiece = undefined;
