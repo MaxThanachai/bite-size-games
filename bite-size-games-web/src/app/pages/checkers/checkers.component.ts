@@ -26,6 +26,7 @@ export class CheckersComponent implements OnInit {
   pieces: IPiece[] = [];
   selectingPiece: IPiece | null = null;
   possibleMoveGrids: IPosition[] = [];
+  possibleAttackGrids: IPosition[] = [];
   currentTurn: PLAYER = PLAYER.BLACK;
 
   constructor() {}
@@ -40,7 +41,8 @@ export class CheckersComponent implements OnInit {
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
         player: PLAYER.BLACK,
-        isPromoted: false,
+        // isPromoted: false,
+        isPromoted: true,
         x: i,
         y: 6 + (i % 2),
       });
@@ -55,6 +57,11 @@ export class CheckersComponent implements OnInit {
     }
   }
 
+  getBoardLength(direction: 1 | -1): number[] {
+    if (direction === 1) return [0, 1, 2, 3, 4, 5, 6, 7];
+    else return [7, 6, 5, 4, 3, 2, 1, 0];
+  }
+
   isPossibleMoveGrid(x: number, y: number): boolean {
     if (this.selectingPiece === undefined) return false;
     return Boolean(
@@ -62,22 +69,69 @@ export class CheckersComponent implements OnInit {
     );
   }
 
-  drawPossibleMoveGrid(selectedPiece: IPiece): void {
+  calculatePossibleMoveGrid(selectedPiece: IPiece): void {
     this.possibleMoveGrids = [];
     const direction = this.getDirection(selectedPiece);
     const range = selectedPiece.isPromoted ? 7 : 1;
+    let upperLeftPiece: IPiece | null = null;
+    let upperRightPiece: IPiece | null = null;
+    let lowerLeftPiece: IPiece | null = null;
+    let lowerRightPiece: IPiece | null = null;
     for (let i = 1; i <= range; i++) {
       const xVariance = [selectedPiece.x - i, selectedPiece.x + i];
-      const y = selectedPiece.y + 1 * direction;
-      const isContainPieceL = Boolean(this.getPieceAt(xVariance[0], y));
-      const isContainPieceR = Boolean(this.getPieceAt(xVariance[1], y));
-      if (!isContainPieceL) {
+      const y = selectedPiece.y + i * direction;
+      if (!upperLeftPiece) {
+        upperLeftPiece = this.getPieceAt(xVariance[0], y);
+      }
+      if (!upperLeftPiece) {
         this.possibleMoveGrids.push({ x: xVariance[0], y });
       }
-      if (!isContainPieceR) {
+      if (!upperRightPiece) {
+        upperRightPiece = this.getPieceAt(xVariance[1], y);
+      }
+      if (!upperRightPiece) {
         this.possibleMoveGrids.push({ x: xVariance[1], y });
       }
     }
+    if (!selectedPiece.isPromoted) return;
+    for (let i = 1; i <= range; i++) {
+      const xVariance = [selectedPiece.x - i, selectedPiece.x + i];
+      const y = selectedPiece.y + i * -direction;
+      if (!lowerLeftPiece) {
+        lowerLeftPiece = this.getPieceAt(xVariance[0], y);
+      }
+      if (!lowerLeftPiece) {
+        this.possibleMoveGrids.push({ x: xVariance[0], y });
+      }
+      if (!lowerRightPiece) {
+        lowerRightPiece = this.getPieceAt(xVariance[1], y);
+      }
+      if (!lowerRightPiece) {
+        this.possibleMoveGrids.push({ x: xVariance[1], y });
+      }
+    }
+  }
+
+  calculatePossibleAttackGrid(selectedPiece: IPiece): void {
+    // this.possibleAttackGrids = [];
+    // const direction = this.getDirection(selectedPiece);
+    // const range = selectedPiece.isPromoted ? 7 : 1;
+    // for (let i = 1; i <= range; i++) {
+    //   const xVariance = [selectedPiece.x - i, selectedPiece.x + i];
+    //   const y = selectedPiece.y + 1 * direction;
+    //   const isContainPieceL = Boolean(this.getPieceAt(xVariance[0], y));
+    //   const isContainPieceR = Boolean(this.getPieceAt(xVariance[1], y));
+    //   if (!isContainPieceL) {
+    //     this.possibleMoveGrids.push({ x: xVariance[0], y });
+    //   }
+    //   if (!isContainPieceR) {
+    //     this.possibleMoveGrids.push({ x: xVariance[1], y });
+    //   }
+    // }
+    // clear grids
+    // find any enemy piece in walk range?
+    // the grid behind that enemy piece is empty?
+    // add path to the grids array
   }
 
   getDirection(piece: IPiece): number {
@@ -106,7 +160,7 @@ export class CheckersComponent implements OnInit {
 
   selectPiece(piece: IPiece): void {
     this.selectingPiece = piece;
-    this.drawPossibleMoveGrid(piece);
+    this.calculatePossibleMoveGrid(piece);
     this.logMessages.push(
       `selecting ${piece.x}, ${piece.y} ${piece.player} ${
         piece.isPromoted ? '*' : ''
