@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 
-interface IPiece extends IPosition {
+interface IPiece {
   player: PLAYER;
   isPromoted: boolean;
+  position: IPosition;
 }
 
 enum PLAYER {
@@ -13,6 +14,11 @@ enum PLAYER {
 interface IPosition {
   x: number;
   y: number;
+}
+
+interface IAttackGrid {
+  landingGrid: IPosition;
+  enemyPiece: IPiece;
 }
 
 @Component({
@@ -26,7 +32,7 @@ export class CheckersComponent implements OnInit {
   pieces: IPiece[] = [];
   selectingPiece: IPiece | null = null;
   possibleMoveGrids: IPosition[] = [];
-  possibleAttackGrids: IPosition[] = [];
+  possibleAttackGrids: IAttackGrid[] = [];
   currentTurn: PLAYER = PLAYER.BLACK;
 
   constructor() {}
@@ -43,16 +49,17 @@ export class CheckersComponent implements OnInit {
         player: PLAYER.BLACK,
         // isPromoted: false,
         isPromoted: true,
-        x: i,
-        y: 6 + (i % 2),
+        position: {
+          x: i,
+          y: 6 + (i % 2),
+        },
       });
     }
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
         player: PLAYER.WHITE,
         isPromoted: false,
-        x: i,
-        y: i % 2,
+        position: { x: i, y: i % 2 },
       });
     }
   }
@@ -69,69 +76,62 @@ export class CheckersComponent implements OnInit {
     );
   }
 
-  calculatePossibleMoveGrid(selectedPiece: IPiece): void {
-    this.possibleMoveGrids = [];
-    const direction = this.getDirection(selectedPiece);
-    const range = selectedPiece.isPromoted ? 7 : 1;
-    let upperLeftPiece: IPiece | null = null;
-    let upperRightPiece: IPiece | null = null;
-    let lowerLeftPiece: IPiece | null = null;
-    let lowerRightPiece: IPiece | null = null;
-    for (let i = 1; i <= range; i++) {
-      const xVariance = [selectedPiece.x - i, selectedPiece.x + i];
-      const y = selectedPiece.y + i * direction;
-      if (!upperLeftPiece) {
-        upperLeftPiece = this.getPieceAt(xVariance[0], y);
-      }
-      if (!upperLeftPiece) {
-        this.possibleMoveGrids.push({ x: xVariance[0], y });
-      }
-      if (!upperRightPiece) {
-        upperRightPiece = this.getPieceAt(xVariance[1], y);
-      }
-      if (!upperRightPiece) {
-        this.possibleMoveGrids.push({ x: xVariance[1], y });
-      }
-    }
-    if (!selectedPiece.isPromoted) return;
-    for (let i = 1; i <= range; i++) {
-      const xVariance = [selectedPiece.x - i, selectedPiece.x + i];
-      const y = selectedPiece.y + i * -direction;
-      if (!lowerLeftPiece) {
-        lowerLeftPiece = this.getPieceAt(xVariance[0], y);
-      }
-      if (!lowerLeftPiece) {
-        this.possibleMoveGrids.push({ x: xVariance[0], y });
-      }
-      if (!lowerRightPiece) {
-        lowerRightPiece = this.getPieceAt(xVariance[1], y);
-      }
-      if (!lowerRightPiece) {
-        this.possibleMoveGrids.push({ x: xVariance[1], y });
-      }
-    }
+  isPossibleAttackGrid(x: number, y: number): boolean {
+    if (this.selectingPiece === undefined) return false;
+    return Boolean(
+      this.possibleAttackGrids.find(
+        (grid) => grid.landingGrid.x === x && grid.landingGrid.y === y
+      )
+    );
   }
 
-  calculatePossibleAttackGrid(selectedPiece: IPiece): void {
-    // this.possibleAttackGrids = [];
-    // const direction = this.getDirection(selectedPiece);
-    // const range = selectedPiece.isPromoted ? 7 : 1;
-    // for (let i = 1; i <= range; i++) {
-    //   const xVariance = [selectedPiece.x - i, selectedPiece.x + i];
-    //   const y = selectedPiece.y + 1 * direction;
-    //   const isContainPieceL = Boolean(this.getPieceAt(xVariance[0], y));
-    //   const isContainPieceR = Boolean(this.getPieceAt(xVariance[1], y));
-    //   if (!isContainPieceL) {
-    //     this.possibleMoveGrids.push({ x: xVariance[0], y });
-    //   }
-    //   if (!isContainPieceR) {
-    //     this.possibleMoveGrids.push({ x: xVariance[1], y });
-    //   }
-    // }
-    // clear grids
-    // find any enemy piece in walk range?
-    // the grid behind that enemy piece is empty?
-    // add path to the grids array
+  isInBoard(x: number, y: number): boolean {
+    return x >= 0 && x < 7 && y >= 0 && y < 7;
+  }
+
+  calculatePossibleMoveGrid(selectedPiece: IPiece): void {
+    this.possibleMoveGrids = [];
+    this.possibleAttackGrids = [];
+    const yMultiplier = this.getDirection(selectedPiece);
+    const range = selectedPiece.isPromoted ? 7 : 1;
+    let directions: IPosition[] = [
+      { x: -1, y: 1 * yMultiplier },
+      { x: 1, y: 1 * yMultiplier },
+    ];
+    if (selectedPiece.isPromoted)
+      directions = directions.concat([
+        { x: -1, y: -1 * yMultiplier },
+        { x: 1, y: -1 * yMultiplier },
+      ]);
+    for (const direction of directions) {
+      let enemyPiece: IPiece | null = null;
+      for (let i = 1; i <= range; i++) {
+        const piece = this.getPieceAt(
+          selectedPiece.position.x + direction.x * i,
+          selectedPiece.position.y + direction.y * i
+        );
+        if (!piece) {
+          this.possibleMoveGrids.push({
+            x: selectedPiece.position.x + direction.x * i,
+            y: selectedPiece.position.y + direction.y * i,
+          });
+        } else if (piece.player !== selectedPiece.player) {
+          enemyPiece = piece;
+          break;
+        } else {
+          break;
+        }
+      }
+      if (enemyPiece) {
+        const landingGrid: IPosition = {
+          x: enemyPiece.position.x + direction.x,
+          y: enemyPiece.position.y + direction.y,
+        };
+        if (!this.getPieceAt(landingGrid.x, landingGrid.y)) {
+          this.possibleAttackGrids.push({ landingGrid, enemyPiece });
+        }
+      }
+    }
   }
 
   getDirection(piece: IPiece): number {
@@ -140,10 +140,23 @@ export class CheckersComponent implements OnInit {
 
   getPieceAt(x: number, y: number): IPiece | null {
     const index = this.pieces.findIndex(
-      (piece) => piece.x === x && piece.y === y
+      (piece) => piece.position.x === x && piece.position.y === y
     );
     if (index === -1) return null;
     return this.pieces[index];
+  }
+
+  getGridInPath(start: IPosition, end: IPosition): IPosition[] {
+    const distance = start.x - end.x;
+    if (distance === 0) return [];
+    const result: IPosition[] = [start];
+    for (let i = 1; i < distance; i++) {
+      result.push({
+        x: start.x + i * Math.sign(end.x - start.x),
+        y: start.y + i * Math.sign(end.y - start.y),
+      });
+    }
+    return result;
   }
 
   onTapGrid(x: number, y: number): void {
@@ -153,6 +166,11 @@ export class CheckersComponent implements OnInit {
       this.selectPiece(piece);
     } else if (this.selectingPiece !== null && this.isPossibleMoveGrid(x, y)) {
       this.movePieceAndProgressToNextTurn(x, y);
+    } else if (
+      this.selectingPiece !== null &&
+      this.isPossibleAttackGrid(x, y)
+    ) {
+      this.attackAndProgress(x, y);
     } else if (this.selectingPiece !== null) {
       this.deselectPiece();
     }
@@ -162,7 +180,7 @@ export class CheckersComponent implements OnInit {
     this.selectingPiece = piece;
     this.calculatePossibleMoveGrid(piece);
     this.logMessages.push(
-      `selecting ${piece.x}, ${piece.y} ${piece.player} ${
+      `selecting ${piece.position.x}, ${piece.position.y} ${piece.player} ${
         piece.isPromoted ? '*' : ''
       }`
     );
@@ -171,17 +189,41 @@ export class CheckersComponent implements OnInit {
   deselectPiece(): void {
     this.selectingPiece = null;
     this.possibleMoveGrids = [];
+    this.possibleAttackGrids = [];
     this.logMessages.push(`Deselected`);
   }
 
   movePieceAndProgressToNextTurn(x: number, y: number): void {
     if (!this.selectingPiece) return;
-    this.selectingPiece.x = x;
-    this.selectingPiece.y = y;
+    this.selectingPiece.position.x = x;
+    this.selectingPiece.position.y = y;
     this.selectingPiece = null;
     this.currentTurn =
       this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
     this.possibleMoveGrids = [];
+    this.possibleAttackGrids = [];
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
+  }
+
+  attackAndProgress(x: number, y: number): void {
+    const attackGrid = this.possibleAttackGrids.find(
+      (grid) => grid.landingGrid.x === x && grid.landingGrid.y === y
+    );
+    if (!attackGrid || !this.selectingPiece) return;
+    this.selectingPiece.position.x = x;
+    this.selectingPiece.position.y = y;
+    const enemyPieceIndex = this.pieces.findIndex(
+      (piece) => piece === attackGrid.enemyPiece
+    );
+    if (enemyPieceIndex === -1) return;
+    this.pieces.splice(enemyPieceIndex, 1);
+    this.selectingPiece = null;
+    this.currentTurn =
+      this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
+    this.possibleMoveGrids = [];
+    this.possibleAttackGrids = [];
+    this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
+
+    // TODO: Chain attack for promoted player
   }
 }

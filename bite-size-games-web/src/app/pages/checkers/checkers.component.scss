@@ -24,10 +24,13 @@
       background-color: $color-text-gray;
     }
     &.highlight {
-      background-color: $color-text-bright-green !important;
+      background-color: $color-text-bright-green;
     }
     &.highlight-dark {
-      background-color: $color-text-dark-green !important;
+      background-color: $color-text-dark-green;
+    }
+    &.highlight-yellow {
+      background-color: $color-text-custard !important;
     }
     .piece {
       min-width: 80%;
