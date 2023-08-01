@@ -31,9 +31,10 @@ export class CheckersComponent implements OnInit {
 
   pieces: IPiece[] = [];
   selectingPiece: IPiece | null = null;
-  possibleMoveGrids: IPosition[] = [];
-  possibleAttackGrids: IAttackGrid[] = [];
+  possibleMoves: IPosition[] = [];
+  possibleAttacks: IAttackGrid[] = [];
   currentTurn: PLAYER = PLAYER.BLACK;
+  isChainAttacking = false;
 
   constructor() {}
 
@@ -58,7 +59,8 @@ export class CheckersComponent implements OnInit {
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
         player: PLAYER.WHITE,
-        isPromoted: false,
+        // isPromoted: false,
+        isPromoted: true,
         position: { x: i, y: i % 2 },
       });
     }
@@ -70,28 +72,32 @@ export class CheckersComponent implements OnInit {
   }
 
   isPossibleMoveGrid(x: number, y: number): boolean {
-    if (this.selectingPiece === undefined) return false;
+    if (!this.selectingPiece) return false;
     return Boolean(
-      this.possibleMoveGrids.find((grid) => grid.x === x && grid.y === y)
+      this.possibleMoves.find((grid) => grid.x === x && grid.y === y)
     );
   }
 
   isPossibleAttackGrid(x: number, y: number): boolean {
-    if (this.selectingPiece === undefined) return false;
+    if (!this.selectingPiece) return false;
     return Boolean(
-      this.possibleAttackGrids.find(
+      this.possibleAttacks.find(
         (grid) => grid.landingGrid.x === x && grid.landingGrid.y === y
       )
     );
+  }
+
+  isValidLandingGrid(x: number, y: number) {
+    return this.isInBoard(x, y) && this.getPieceAt(x, y) === null;
   }
 
   isInBoard(x: number, y: number): boolean {
     return x >= 0 && x < 7 && y >= 0 && y < 7;
   }
 
-  calculatePossibleMoveGrid(selectedPiece: IPiece): void {
-    this.possibleMoveGrids = [];
-    this.possibleAttackGrids = [];
+  calculatePossibleMoves(selectedPiece: IPiece): void {
+    this.possibleMoves = [];
+    this.possibleAttacks = [];
     const yMultiplier = this.getDirection(selectedPiece);
     const range = selectedPiece.isPromoted ? 7 : 1;
     let directions: IPosition[] = [
@@ -111,7 +117,7 @@ export class CheckersComponent implements OnInit {
           selectedPiece.position.y + direction.y * i
         );
         if (!piece) {
-          this.possibleMoveGrids.push({
+          this.possibleMoves.push({
             x: selectedPiece.position.x + direction.x * i,
             y: selectedPiece.position.y + direction.y * i,
           });
@@ -127,11 +133,15 @@ export class CheckersComponent implements OnInit {
           x: enemyPiece.position.x + direction.x,
           y: enemyPiece.position.y + direction.y,
         };
-        if (!this.getPieceAt(landingGrid.x, landingGrid.y)) {
-          this.possibleAttackGrids.push({ landingGrid, enemyPiece });
+        if (this.isValidLandingGrid(landingGrid.x, landingGrid.y)) {
+          this.possibleAttacks.push({ landingGrid, enemyPiece });
         }
       }
     }
+    this.logMessages.push(`${this.possibleAttacks.length} attack(s) possible`);
+    this.possibleAttacks.forEach((attack) => {
+      this.logMessages.push(`${attack.landingGrid.x}, ${attack.landingGrid.y}`);
+    });
   }
 
   getDirection(piece: IPiece): number {
@@ -146,39 +156,43 @@ export class CheckersComponent implements OnInit {
     return this.pieces[index];
   }
 
-  getGridInPath(start: IPosition, end: IPosition): IPosition[] {
-    const distance = start.x - end.x;
-    if (distance === 0) return [];
-    const result: IPosition[] = [start];
-    for (let i = 1; i < distance; i++) {
-      result.push({
-        x: start.x + i * Math.sign(end.x - start.x),
-        y: start.y + i * Math.sign(end.y - start.y),
-      });
-    }
-    return result;
-  }
+  // getGridInPath(start: IPosition, end: IPosition): IPosition[] {
+  //   const distance = start.x - end.x;
+  //   if (distance === 0) return [];
+  //   const result: IPosition[] = [start];
+  //   for (let i = 1; i < distance; i++) {
+  //     result.push({
+  //       x: start.x + i * Math.sign(end.x - start.x),
+  //       y: start.y + i * Math.sign(end.y - start.y),
+  //     });
+  //   }
+  //   return result;
+  // }
 
   onTapGrid(x: number, y: number): void {
     this.logMessages.push(`tap ${x}, ${y}`);
     const piece = this.getPieceAt(x, y);
-    if (piece && piece.player === this.currentTurn) {
+    if (piece && piece.player === this.currentTurn && !this.isChainAttacking) {
       this.selectPiece(piece);
-    } else if (this.selectingPiece !== null && this.isPossibleMoveGrid(x, y)) {
+    } else if (
+      this.selectingPiece !== null &&
+      this.isPossibleMoveGrid(x, y) &&
+      !this.isChainAttacking
+    ) {
       this.movePieceAndProgressToNextTurn(x, y);
     } else if (
       this.selectingPiece !== null &&
       this.isPossibleAttackGrid(x, y)
     ) {
       this.attackAndProgress(x, y);
-    } else if (this.selectingPiece !== null) {
+    } else if (this.selectingPiece !== null && !this.isChainAttacking) {
       this.deselectPiece();
     }
   }
 
   selectPiece(piece: IPiece): void {
     this.selectingPiece = piece;
-    this.calculatePossibleMoveGrid(piece);
+    this.calculatePossibleMoves(piece);
     this.logMessages.push(
       `selecting ${piece.position.x}, ${piece.position.y} ${piece.player} ${
         piece.isPromoted ? '*' : ''
@@ -188,8 +202,8 @@ export class CheckersComponent implements OnInit {
 
   deselectPiece(): void {
     this.selectingPiece = null;
-    this.possibleMoveGrids = [];
-    this.possibleAttackGrids = [];
+    this.possibleMoves = [];
+    this.possibleAttacks = [];
     this.logMessages.push(`Deselected`);
   }
 
@@ -200,13 +214,13 @@ export class CheckersComponent implements OnInit {
     this.selectingPiece = null;
     this.currentTurn =
       this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
-    this.possibleMoveGrids = [];
-    this.possibleAttackGrids = [];
+    this.possibleMoves = [];
+    this.possibleAttacks = [];
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
   }
 
   attackAndProgress(x: number, y: number): void {
-    const attackGrid = this.possibleAttackGrids.find(
+    const attackGrid = this.possibleAttacks.find(
       (grid) => grid.landingGrid.x === x && grid.landingGrid.y === y
     );
     if (!attackGrid || !this.selectingPiece) return;
@@ -217,13 +231,31 @@ export class CheckersComponent implements OnInit {
     );
     if (enemyPieceIndex === -1) return;
     this.pieces.splice(enemyPieceIndex, 1);
-    this.selectingPiece = null;
+    if (this.selectingPiece.isPromoted) {
+      this.isChainAttacking = true;
+      this.chainAttack(this.selectingPiece);
+    } else {
+      this.endTurn();
+    }
+  }
+
+  chainAttack(selectingPiece: IPiece): void {
+    this.calculatePossibleMoves(selectingPiece);
+    this.possibleMoves = [];
+    if (!this.possibleAttacks.length) {
+      this.isChainAttacking = false;
+      this.endTurn();
+    }
+  }
+
+  endTurn(): void {
+    this.deselectPiece();
     this.currentTurn =
       this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
-    this.possibleMoveGrids = [];
-    this.possibleAttackGrids = [];
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
-
-    // TODO: Chain attack for promoted player
   }
+
+  // TODO: Promote pieces when it reach another side
+
+  // TODO: Force attack if possible
 }
