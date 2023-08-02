@@ -32,6 +32,9 @@
     &.highlight-yellow {
       background-color: $color-text-custard !important;
     }
+    &.highlight-red {
+      background-color: $color-text-red !important;
+    }
     .piece {
       min-width: 80%;
       min-height: 80%;

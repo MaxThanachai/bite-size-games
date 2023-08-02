@@ -10,7 +10,8 @@
               selectingPiece?.position?.x === x &&
               selectingPiece?.position?.y === y,
             highlight: isPossibleMoveGrid(x, y) && !isPossibleAttackGrid(x, y),
-            'highlight-yellow': isPossibleAttackGrid(x, y)
+            'highlight-red': isPossibleAttackGrid(x, y),
+            'highlight-yellow': isPieceWithAttackMove(x, y)
           }"
           (click)="onTapGrid(x, y)"
         >

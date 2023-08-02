@@ -33,6 +33,7 @@ export class CheckersComponent implements OnInit {
   selectingPiece: IPiece | null = null;
   possibleMoves: IPosition[] = [];
   possibleAttacks: IAttackGrid[] = [];
+  piecesWithAttackMoves: IPiece[] = [];
   currentTurn: PLAYER = PLAYER.BLACK;
   isChainAttacking = false;
 
@@ -87,12 +88,20 @@ export class CheckersComponent implements OnInit {
     );
   }
 
+  isPieceWithAttackMove(x: number, y: number): boolean {
+    return Boolean(
+      this.piecesWithAttackMoves.find(
+        (piece) => piece.position.x === x && piece.position.y === y
+      )
+    );
+  }
+
   isValidLandingGrid(x: number, y: number) {
     return this.isInBoard(x, y) && this.getPieceAt(x, y) === null;
   }
 
   isInBoard(x: number, y: number): boolean {
-    return x >= 0 && x < 7 && y >= 0 && y < 7;
+    return x >= 0 && x <= 7 && y >= 0 && y <= 7;
   }
 
   calculatePossibleMoves(selectedPiece: IPiece): void {
@@ -138,10 +147,6 @@ export class CheckersComponent implements OnInit {
         }
       }
     }
-    this.logMessages.push(`${this.possibleAttacks.length} attack(s) possible`);
-    this.possibleAttacks.forEach((attack) => {
-      this.logMessages.push(`${attack.landingGrid.x}, ${attack.landingGrid.y}`);
-    });
   }
 
   getDirection(piece: IPiece): number {
@@ -191,6 +196,16 @@ export class CheckersComponent implements OnInit {
   }
 
   selectPiece(piece: IPiece): void {
+    if (
+      this.piecesWithAttackMoves.length &&
+      !this.piecesWithAttackMoves.includes(piece)
+    ) {
+      this.logMessages.push(
+        `Forcing attack. Cannot select ${piece.position.x}, ${piece.position.y}`
+      );
+      this.deselectPiece();
+      return;
+    }
     this.selectingPiece = piece;
     this.calculatePossibleMoves(piece);
     this.logMessages.push(
@@ -211,12 +226,8 @@ export class CheckersComponent implements OnInit {
     if (!this.selectingPiece) return;
     this.selectingPiece.position.x = x;
     this.selectingPiece.position.y = y;
-    this.selectingPiece = null;
-    this.currentTurn =
-      this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
-    this.possibleMoves = [];
-    this.possibleAttacks = [];
-    this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
+    this.deselectPiece();
+    this.endTurn();
   }
 
   attackAndProgress(x: number, y: number): void {
@@ -249,13 +260,29 @@ export class CheckersComponent implements OnInit {
   }
 
   endTurn(): void {
-    this.deselectPiece();
     this.currentTurn =
       this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
+    this.checkForceAttacks();
+  }
+
+  checkForceAttacks(): void {
+    const piecesOfCurrentPlayer = this.pieces.filter(
+      (piece) => piece.player === this.currentTurn
+    );
+    this.piecesWithAttackMoves = [];
+    piecesOfCurrentPlayer.forEach((piece) => {
+      this.calculatePossibleMoves(piece);
+      if (this.possibleAttacks.length) {
+        this.piecesWithAttackMoves.push(piece);
+        this.logMessages.push(
+          `Piece with possible attack move(s): ${piece.position.x}, ${piece.position.y}
+          `
+        );
+      }
+    });
+    this.deselectPiece();
   }
 
   // TODO: Promote pieces when it reach another side
-
-  // TODO: Force attack if possible
 }
