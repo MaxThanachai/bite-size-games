@@ -49,8 +49,7 @@ export class CheckersComponent implements OnInit {
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
         player: PLAYER.BLACK,
-        // isPromoted: false,
-        isPromoted: true,
+        isPromoted: false,
         position: {
           x: i,
           y: 6 + (i % 2),
@@ -60,8 +59,7 @@ export class CheckersComponent implements OnInit {
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
         player: PLAYER.WHITE,
-        // isPromoted: false,
-        isPromoted: true,
+        isPromoted: false,
         position: { x: i, y: i % 2 },
       });
     }
@@ -161,23 +159,10 @@ export class CheckersComponent implements OnInit {
     return this.pieces[index];
   }
 
-  // getGridInPath(start: IPosition, end: IPosition): IPosition[] {
-  //   const distance = start.x - end.x;
-  //   if (distance === 0) return [];
-  //   const result: IPosition[] = [start];
-  //   for (let i = 1; i < distance; i++) {
-  //     result.push({
-  //       x: start.x + i * Math.sign(end.x - start.x),
-  //       y: start.y + i * Math.sign(end.y - start.y),
-  //     });
-  //   }
-  //   return result;
-  // }
-
   onTapGrid(x: number, y: number): void {
     this.logMessages.push(`tap ${x}, ${y}`);
     const piece = this.getPieceAt(x, y);
-    if (piece && piece.player === this.currentTurn && !this.isChainAttacking) {
+    if (piece && this.isMovablePiece(piece)) {
       this.selectPiece(piece);
     } else if (
       this.selectingPiece !== null &&
@@ -195,17 +180,16 @@ export class CheckersComponent implements OnInit {
     }
   }
 
+  isMovablePiece(piece: IPiece): boolean {
+    return (
+      piece.player === this.currentTurn &&
+      !this.isChainAttacking &&
+      (!this.piecesWithAttackMoves.length ||
+        this.piecesWithAttackMoves.includes(piece))
+    );
+  }
+
   selectPiece(piece: IPiece): void {
-    if (
-      this.piecesWithAttackMoves.length &&
-      !this.piecesWithAttackMoves.includes(piece)
-    ) {
-      this.logMessages.push(
-        `Forcing attack. Cannot select ${piece.position.x}, ${piece.position.y}`
-      );
-      this.deselectPiece();
-      return;
-    }
     this.selectingPiece = piece;
     this.calculatePossibleMoves(piece);
     this.logMessages.push(
@@ -226,8 +210,19 @@ export class CheckersComponent implements OnInit {
     if (!this.selectingPiece) return;
     this.selectingPiece.position.x = x;
     this.selectingPiece.position.y = y;
-    this.deselectPiece();
     this.endTurn();
+  }
+
+  checkPromoted(piece: IPiece | null): void {
+    if (!piece || piece.isPromoted) return;
+    const direction = this.getDirection(piece);
+    if (
+      (direction === -1 && piece.position.y === 0) ||
+      (direction === 1 && piece.position.y === 7)
+    ) {
+      piece.isPromoted = true;
+      this.logMessages.push(`Promoted a piece of player: ${this.currentTurn}`);
+    }
   }
 
   attackAndProgress(x: number, y: number): void {
@@ -260,6 +255,8 @@ export class CheckersComponent implements OnInit {
   }
 
   endTurn(): void {
+    this.checkPromoted(this.selectingPiece);
+    this.deselectPiece();
     this.currentTurn =
       this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
@@ -281,8 +278,7 @@ export class CheckersComponent implements OnInit {
         );
       }
     });
-    this.deselectPiece();
   }
 
-  // TODO: Promote pieces when it reach another side
+  // TODO: Log screen overflow
 }
