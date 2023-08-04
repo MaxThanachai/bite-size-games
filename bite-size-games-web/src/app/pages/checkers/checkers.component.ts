@@ -210,6 +210,7 @@ export class CheckersComponent implements OnInit {
     if (!this.selectingPiece) return;
     this.selectingPiece.position.x = x;
     this.selectingPiece.position.y = y;
+    this.checkPromoted(this.selectingPiece);
     this.endTurn();
   }
 
@@ -237,12 +238,9 @@ export class CheckersComponent implements OnInit {
     );
     if (enemyPieceIndex === -1) return;
     this.pieces.splice(enemyPieceIndex, 1);
-    if (this.selectingPiece.isPromoted) {
-      this.isChainAttacking = true;
-      this.chainAttack(this.selectingPiece);
-    } else {
-      this.endTurn();
-    }
+    this.checkPromoted(this.selectingPiece);
+    this.isChainAttacking = true;
+    this.chainAttack(this.selectingPiece);
   }
 
   chainAttack(selectingPiece: IPiece): void {
@@ -255,7 +253,6 @@ export class CheckersComponent implements OnInit {
   }
 
   endTurn(): void {
-    this.checkPromoted(this.selectingPiece);
     this.deselectPiece();
     this.currentTurn =
       this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
@@ -281,4 +278,10 @@ export class CheckersComponent implements OnInit {
   }
 
   // TODO: Display promoted pieces
+
+  // TODO: Display remaining pieces
+
+  // TODO: Display current turn
+
+  // TODO: Surrender button
 }
