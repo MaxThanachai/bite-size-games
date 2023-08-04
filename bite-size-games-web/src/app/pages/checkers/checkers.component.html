@@ -1,35 +1,43 @@
-<div class="checker-board-container">
-  <div class="checker-board">
-    <ng-container *ngFor="let y of getBoardLength(-1)">
-      <ng-container *ngFor="let x of getBoardLength(-1)">
-        <div
-          class="grid"
-          [ngClass]="{
-            black: (x % 2 === 0 && y % 2 === 0) || (x % 2 !== 0 && y % 2 !== 0),
-            'highlight-dark':
-              selectingPiece?.position?.x === x &&
-              selectingPiece?.position?.y === y,
-            highlight: isPossibleMoveGrid(x, y) && !isPossibleAttackGrid(x, y),
-            'highlight-red': isPossibleAttackGrid(x, y),
-            'highlight-yellow': isPieceWithAttackMove(x, y)
-          }"
-          (click)="onTapGrid(x, y)"
-        >
+<div class="wrapper">
+  <div class="banner"><span>PURE WEBHOOK CHECKERS</span></div>
+  <div class="checker-board-container">
+    <div class="checker-board">
+      <ng-container *ngFor="let y of getBoardLength(-1)">
+        <ng-container *ngFor="let x of getBoardLength(-1)">
           <div
-            *ngIf="getPieceAt(x, y)"
-            class="piece"
+            class="grid"
             [ngClass]="{
-              black: getPieceAt(x, y)?.player?.valueOf() === 'black',
-              white: getPieceAt(x, y)?.player?.valueOf() === 'white'
+              black:
+                (x % 2 === 0 && y % 2 === 0) || (x % 2 !== 0 && y % 2 !== 0),
+              'highlight-dark':
+                selectingPiece?.position?.x === x &&
+                selectingPiece?.position?.y === y,
+              highlight:
+                isPossibleMoveGrid(x, y) && !isPossibleAttackGrid(x, y),
+              'highlight-red': isPossibleAttackGrid(x, y),
+              'highlight-yellow': isPieceWithAttackMove(x, y)
             }"
-          ></div>
-        </div>
+            (click)="onTapGrid(x, y)"
+          >
+            <div
+              *ngIf="getPieceAt(x, y)"
+              class="piece"
+              [ngClass]="{
+                black: getPieceAt(x, y)?.player?.valueOf() === 'black',
+                white: getPieceAt(x, y)?.player?.valueOf() === 'white'
+              }"
+            ></div>
+          </div>
+        </ng-container>
       </ng-container>
-    </ng-container>
+    </div>
   </div>
   <div class="log-container">
-    <span *ngFor="let log of logMessages">
-      {{ log }}
-    </span>
+    <div class="log-content">
+      <span *ngFor="let log of logMessages">
+        {{ log }}
+      </span>
+    </div>
   </div>
+  <div class="game-status">STATUS</div>
 </div>

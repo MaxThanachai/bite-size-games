@@ -280,5 +280,5 @@ export class CheckersComponent implements OnInit {
     });
   }
 
-  // TODO: Log screen overflow
+  // TODO: Display promoted pieces
 }
