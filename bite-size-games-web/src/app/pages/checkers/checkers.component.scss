@@ -71,15 +71,21 @@
           background-color: $color-text-red !important;
         }
         .piece {
-          min-width: 80%;
-          min-height: 80%;
+          width: 80%;
+          height: 80%;
           border-radius: 50%;
           box-shadow: 2px 5px 8px 3px $color-highlight-gray;
+          display: flex;
           &.black {
             background-color: $color-background-dark-gray;
           }
           &.white {
             background-color: $color-text-light-gray;
+          }
+          img {
+            margin: auto;
+            width: 80%;
+            height: 80%;
           }
         }
       }
@@ -93,10 +99,11 @@
     overflow-x: hidden;
     display: flex;
     flex-direction: row;
+    border: 1px solid $color-highlight-dark-gray;
     .log-content {
       height: 100%;
       width: 100%;
-      border: 1px solid $color-highlight-dark-gray;
+      padding: 8px;
       display: flex;
       flex-direction: column;
       span {

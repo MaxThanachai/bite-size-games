@@ -277,8 +277,6 @@ export class CheckersComponent implements OnInit {
     });
   }
 
-  // TODO: Display promoted pieces
-
   // TODO: Display remaining pieces
 
   // TODO: Display current turn

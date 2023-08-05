@@ -26,7 +26,12 @@
                 black: getPieceAt(x, y)?.player?.valueOf() === 'black',
                 white: getPieceAt(x, y)?.player?.valueOf() === 'white'
               }"
-            ></div>
+            >
+              <img
+                src="assets/crown.png"
+                *ngIf="getPieceAt(x, y)?.isPromoted"
+              />
+            </div>
           </div>
         </ng-container>
       </ng-container>
@@ -34,7 +39,7 @@
   </div>
   <div class="log-container">
     <div class="log-content">
-      <span *ngFor="let log of logMessages">
+      <span *ngFor="let log of logMessages.reverse()">
         {{ log }}
       </span>
     </div>
