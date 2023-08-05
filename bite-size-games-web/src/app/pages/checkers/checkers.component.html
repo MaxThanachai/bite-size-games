@@ -44,5 +44,23 @@
       </span>
     </div>
   </div>
-  <div class="game-status">STATUS</div>
+  <div class="game-status">
+    <div class="remaining-pieces-container">
+      <div
+        class="remaining-pieces"
+        [ngClass]="{ 'current-player': currentTurn === PLAYER.BLACK }"
+      >
+        <div class="remaining-pieces-icon black"></div>
+        <span>{{ getRemainingPieces(PLAYER.BLACK) }}</span>
+      </div>
+      <div
+        class="remaining-pieces"
+        [ngClass]="{ 'current-player': currentTurn === PLAYER.WHITE }"
+      >
+        <div class="remaining-pieces-icon white"></div>
+        <span>{{ getRemainingPieces(PLAYER.WHITE) }}</span>
+      </div>
+    </div>
+    <div class="surrender-button"></div>
+  </div>
 </div>

@@ -9,6 +9,9 @@
       "board board"
       "log menu";
   }
+  .game-status {
+    flex-direction: column;
+  }
 }
 
 @media (orientation: landscape) {
@@ -19,6 +22,9 @@
       "board banner"
       "board log"
       "board menu";
+  }
+  .game-status {
+    flex-direction: row;
   }
 }
 
@@ -114,6 +120,44 @@
   }
   .game-status {
     grid-area: menu;
-    flex: 1;
+    display: flex;
+    .remaining-pieces-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-block: 8px;
+      .remaining-pieces {
+        flex: 1;
+        background-color: $color-highlight-dark-gray;
+        margin-inline: 16px;
+        margin-block: 8px;
+        border-radius: 8px;
+        padding-inline: 16px;
+        display: flex;
+        align-items: center;
+        .remaining-pieces-icon {
+          width: min(10vw, 10vh);
+          height: min(10vw, 10vh);
+          border-radius: 50%;
+          display: flex;
+          &.black {
+            background-color: $color-background-dark-gray;
+          }
+          &.white {
+            background-color: $color-text-light-gray;
+          }
+        }
+        span {
+          padding-left: 32px;
+          font-size: $font-title;
+        }
+        &.current-player {
+          outline: 4px solid $color-text-dark-green;
+        }
+      }
+    }
+    .surrender-button {
+      flex: 1;
+    }
   }
 }

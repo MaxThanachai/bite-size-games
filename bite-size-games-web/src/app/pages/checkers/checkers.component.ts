@@ -37,6 +37,8 @@ export class CheckersComponent implements OnInit {
   currentTurn: PLAYER = PLAYER.BLACK;
   isChainAttacking = false;
 
+  PLAYER = PLAYER;
+
   constructor() {}
 
   ngOnInit(): void {
@@ -68,6 +70,10 @@ export class CheckersComponent implements OnInit {
   getBoardLength(direction: 1 | -1): number[] {
     if (direction === 1) return [0, 1, 2, 3, 4, 5, 6, 7];
     else return [7, 6, 5, 4, 3, 2, 1, 0];
+  }
+
+  getRemainingPieces(player: PLAYER): number {
+    return this.pieces.filter((piece) => piece.player === player).length;
   }
 
   isPossibleMoveGrid(x: number, y: number): boolean {
@@ -277,9 +283,5 @@ export class CheckersComponent implements OnInit {
     });
   }
 
-  // TODO: Display remaining pieces
-
-  // TODO: Display current turn
-
-  // TODO: Surrender button
+  // TODO: Surrender button & game reset after one player loses all pieces
 }
