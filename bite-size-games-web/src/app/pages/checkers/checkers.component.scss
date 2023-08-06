@@ -158,6 +158,17 @@
     }
     .surrender-button {
       flex: 1;
+      margin: 16px;
+      border-radius: 8px;
+      box-shadow: 2px 5px 8px 3px black;
+      background-color: $color-highlight-dark-gray;
+      display: flex;
+      cursor: pointer;
+      span {
+        margin: auto;
+        font-size: $font-title;
+        color: $color-text-gray;
+      }
     }
   }
 }

@@ -61,6 +61,8 @@
         <span>{{ getRemainingPieces(PLAYER.WHITE) }}</span>
       </div>
     </div>
-    <div class="surrender-button"></div>
+    <div class="surrender-button" (click)="onPressedSurrender()">
+      <span>SURRENDER</span>
+    </div>
   </div>
 </div>

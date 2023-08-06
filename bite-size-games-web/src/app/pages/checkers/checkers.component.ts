@@ -48,6 +48,7 @@ export class CheckersComponent implements OnInit {
   }
 
   instantiatePieces(): void {
+    this.pieces = [];
     for (let i = 0; i < 8; i++) {
       this.pieces.push({
         player: PLAYER.BLACK,
@@ -264,6 +265,7 @@ export class CheckersComponent implements OnInit {
       this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
     this.checkForceAttacks();
+    this.checkGameEnded();
   }
 
   checkForceAttacks(): void {
@@ -283,5 +285,28 @@ export class CheckersComponent implements OnInit {
     });
   }
 
-  // TODO: Surrender button & game reset after one player loses all pieces
+  checkGameEnded(): void {
+    const blackPieces = this.pieces.filter(
+      (piece) => piece.player === PLAYER.BLACK
+    );
+    const whitePieces = this.pieces.filter(
+      (piece) => piece.player === PLAYER.WHITE
+    );
+    if (!blackPieces.length || !whitePieces.length) {
+      // TODO: winning
+    }
+  }
+
+  onPressedSurrender(): void {
+    if (window.confirm('Do you really want to surrender?')) {
+      this.deselectPiece();
+      this.logMessages.push(`Player ${this.currentTurn} surrendered`);
+      this.resetGame();
+      this.logMessages.push(`-------------------------------`);
+    }
+  }
+
+  resetGame(): void {
+    this.instantiatePieces();
+  }
 }
