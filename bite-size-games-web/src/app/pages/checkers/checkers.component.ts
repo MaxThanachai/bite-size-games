@@ -152,6 +152,9 @@ export class CheckersComponent implements OnInit {
         }
       }
     }
+    if (this.possibleAttacks.length) {
+      this.possibleMoves = [];
+    }
   }
 
   getDirection(piece: IPiece): number {
@@ -292,9 +295,15 @@ export class CheckersComponent implements OnInit {
     const whitePieces = this.pieces.filter(
       (piece) => piece.player === PLAYER.WHITE
     );
-    if (!blackPieces.length || !whitePieces.length) {
-      // TODO: winning
+    if (!blackPieces.length) {
+      this.logMessages.push(`Player white win`);
+    } else if (!whitePieces.length) {
+      this.logMessages.push(`Player black win`);
+    } else {
+      return;
     }
+    this.resetGame();
+    this.logMessages.push(`-------------------------------`);
   }
 
   onPressedSurrender(): void {
