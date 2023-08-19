@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { CheckersService } from './checkers.service';
 
 interface IPiece {
   player: PLAYER;
@@ -39,12 +40,17 @@ export class CheckersComponent implements OnInit {
 
   PLAYER = PLAYER;
 
-  constructor() {}
+  constructor(private checkersService: CheckersService) {}
 
   ngOnInit(): void {
     this.instantiatePieces();
+    this.joinRoom();
     this.logMessages.push(`Game start!`);
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
+  }
+
+  async joinRoom(): Promise<void> {
+    await this.checkersService.joinRoom();
   }
 
   instantiatePieces(): void {
