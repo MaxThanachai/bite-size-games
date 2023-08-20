@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { LandingPageComponent } from './pages/landing-page/landing-page.component';
 import { GameMenusComponent } from './pages/game-menus/game-menus.component';
 import { CheckersComponent } from './pages/checkers/checkers.component';
+import { RoomSelectionComponent } from './pages/checkers/room-selection/room-selection.component';
 
 @NgModule({
   declarations: [
@@ -14,6 +15,7 @@ import { CheckersComponent } from './pages/checkers/checkers.component';
     LandingPageComponent,
     GameMenusComponent,
     CheckersComponent,
+    RoomSelectionComponent,
   ],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule],
   providers: [],

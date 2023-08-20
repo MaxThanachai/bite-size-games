@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { LandingPageComponent } from './pages/landing-page/landing-page.component';
 import { GameMenusComponent } from './pages/game-menus/game-menus.component';
 import { CheckersComponent } from './pages/checkers/checkers.component';
+import { RoomSelectionComponent } from './pages/checkers/room-selection/room-selection.component';
 
 const routes: Routes = [
   {
@@ -18,14 +19,23 @@ const routes: Routes = [
       },
       {
         path: 'checkers',
-        component: CheckersComponent,
-      }
-    ]
+        children: [
+          {
+            path: '',
+            component: RoomSelectionComponent,
+          },
+          {
+            path: 'game',
+            component: CheckersComponent,
+          },
+        ],
+      },
+    ],
   },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
