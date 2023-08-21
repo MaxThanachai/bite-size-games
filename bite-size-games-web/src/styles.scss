@@ -45,3 +45,30 @@ body {
 .button:active {
   background-color: $color-highlight-gray;
 }
+
+.input {
+  cursor: pointer;
+  background-color: $color-background-gray;
+  border: 4px solid $color-highlight-gray;
+  border-radius: 1rem;
+  margin-inline: auto;
+  display: flex;
+  span {
+    margin: auto;
+  }
+  input {
+    background-color: transparent;
+    color: $color-text-light-gray;
+    font-size: $font-title;
+    text-align: center;
+    border: none;
+    margin: 8px;
+    width: 100%;
+  }
+}
+.input:hover {
+  background-color: $color-highlight-dark-gray;
+}
+.input:active {
+  background-color: $color-highlight-gray;
+}

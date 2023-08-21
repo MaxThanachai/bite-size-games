@@ -16,6 +16,18 @@ export class CheckersService {
     return response;
   }
 
+  async createRoom(name: string) {
+    const request = this.http.post(
+      `http://localhost:3000/api/checkers/create-room`,
+      { name },
+      {
+        observe: 'body',
+      }
+    );
+    const response = await lastValueFrom(request);
+    return response;
+  }
+
   async joinRoom() {
     const request = this.http.post(
       `http://localhost:3000/api/checkers/join-room`,

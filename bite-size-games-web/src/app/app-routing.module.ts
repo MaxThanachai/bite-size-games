@@ -4,10 +4,11 @@ import { LandingPageComponent } from './pages/landing-page/landing-page.componen
 import { GameMenusComponent } from './pages/game-menus/game-menus.component';
 import { CheckersComponent } from './pages/checkers/checkers.component';
 import { RoomSelectionComponent } from './pages/checkers/room-selection/room-selection.component';
+import { RoomCreateComponent } from './pages/checkers/room-create/room-create.component';
 
 const routes: Routes = [
   {
-    path: 'landing',
+    path: '',
     component: LandingPageComponent,
   },
   {
@@ -23,6 +24,10 @@ const routes: Routes = [
           {
             path: '',
             component: RoomSelectionComponent,
+          },
+          {
+            path: 'create',
+            component: RoomCreateComponent,
           },
           {
             path: 'game',

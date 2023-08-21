@@ -8,6 +8,8 @@ import { LandingPageComponent } from './pages/landing-page/landing-page.componen
 import { GameMenusComponent } from './pages/game-menus/game-menus.component';
 import { CheckersComponent } from './pages/checkers/checkers.component';
 import { RoomSelectionComponent } from './pages/checkers/room-selection/room-selection.component';
+import { RoomCreateComponent } from './pages/checkers/room-create/room-create.component';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -16,8 +18,9 @@ import { RoomSelectionComponent } from './pages/checkers/room-selection/room-sel
     GameMenusComponent,
     CheckersComponent,
     RoomSelectionComponent,
+    RoomCreateComponent,
   ],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule],
+  imports: [BrowserModule, AppRoutingModule, HttpClientModule, FormsModule],
   providers: [],
   bootstrap: [AppComponent],
 })

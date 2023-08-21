@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CheckersService } from '../checkers.service';
+import { Router } from '@angular/router';
 
 interface IRoom {
   id: string;
@@ -14,7 +15,10 @@ interface IRoom {
 export class RoomSelectionComponent implements OnInit {
   rooms: IRoom[] = [{ id: 'create-new-room', name: 'CREATE NEW ROOM!' }];
 
-  constructor(private checkersService: CheckersService) {}
+  constructor(
+    private checkersService: CheckersService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.getAllRooms();
@@ -29,5 +33,8 @@ export class RoomSelectionComponent implements OnInit {
 
   onClickedRoom(room: IRoom) {
     console.log(room);
+    if (room.id === 'create-new-room') {
+      this.router.navigate(['/bite-size-game/checkers/create']);
+    }
   }
 }

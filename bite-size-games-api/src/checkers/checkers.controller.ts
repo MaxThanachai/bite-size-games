@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Post, Sse } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Sse } from '@nestjs/common';
 import { Observable, Subject, map } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import { ICreateRoom } from './dto/checkers.dto';
 
 interface IRoom {
   id: string;
@@ -45,12 +46,12 @@ export class CheckersController {
 
   constructor() {}
 
-  @Post('create-room/:name')
-  createRoom(@Param('name') name: string): string {
+  @Post('create-room')
+  createRoom(@Body() body: ICreateRoom): string {
     const id = uuidv4();
     this.rooms.push({
       id,
-      name,
+      name: body.name,
       players: [],
       currentTurn: null,
       moves: new Subject<IMove>(),
