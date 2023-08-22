@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Sse } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Sse } from '@nestjs/common';
 import { Observable, Subject, map } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { ICreateRoom } from './dto/checkers.dto';
@@ -22,6 +22,7 @@ interface IMove {
 interface IPlayer {
   playerId: string;
   playerColor: PLAYER;
+  playerName: string;
 }
 
 interface IPosition {
@@ -47,16 +48,17 @@ export class CheckersController {
   constructor() {}
 
   @Post('create-room')
-  createRoom(@Body() body: ICreateRoom): string {
+  createRoom(@Body() body: ICreateRoom): IRoom {
     const id = uuidv4();
-    this.rooms.push({
+    const newRoom = {
       id,
       name: body.name,
       players: [],
       currentTurn: null,
       moves: new Subject<IMove>(),
-    });
-    return id;
+    };
+    this.rooms.push(newRoom);
+    return newRoom;
   }
 
   @Get('rooms')
@@ -64,10 +66,32 @@ export class CheckersController {
     return this.rooms;
   }
 
-  @Sse('join-room/:id')
-  joinRoom(@Param('id') roomId: string): Observable<string> {
+  @Sse('join-room')
+  joinRoom(
+    @Query('room') roomId: string,
+    @Query('player') playerName: string,
+  ): Observable<string> {
+    console.log(roomId);
+    console.log(playerName);
     const thisRoom = this.rooms.find((room) => room.id === roomId);
     if (!thisRoom) throw new Error(`Room id ${roomId} not found`);
+    if (thisRoom.players.length > 1) {
+      throw new Error(`Room id ${roomId} is full!`);
+    }
+    const playerId = uuidv4();
+    if (!thisRoom.players.length) {
+      thisRoom.players.push({
+        playerId,
+        playerName,
+        playerColor: PLAYER.BLACK,
+      });
+    } else {
+      thisRoom.players.push({
+        playerId,
+        playerName,
+        playerColor: PLAYER.WHITE,
+      });
+    }
     return thisRoom.moves.pipe(map((move) => JSON.stringify(move)));
   }
 

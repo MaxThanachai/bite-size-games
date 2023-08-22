@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CheckersService } from '../checkers.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-room-create',
@@ -8,12 +9,25 @@ import { CheckersService } from '../checkers.service';
 })
 export class RoomCreateComponent implements OnInit {
   roomName: string = '';
+  playerName: string = '';
 
-  constructor(private checkersService: CheckersService) {}
+  constructor(
+    private checkersService: CheckersService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {}
 
-  onClickedCreateRoom(): void {
-    this.checkersService.createRoom(this.roomName);
+  async onClickedCreateRoom(): Promise<void> {
+    try {
+      const newRoom = (await this.checkersService.createRoom(
+        this.roomName
+      )) as any;
+      this.router.navigate([`/bite-size-game/checkers/game`], {
+        queryParams: { room: newRoom.id, player: this.playerName },
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

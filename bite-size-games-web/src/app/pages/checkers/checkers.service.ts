@@ -28,12 +28,13 @@ export class CheckersService {
     return response;
   }
 
-  async joinRoom() {
-    const request = this.http.post(
-      `http://localhost:3000/api/checkers/join-room`,
-      { observe: 'body' }
+  async joinRoom(roomId: string, playerName: string) {
+    const eventSource = new EventSource(
+      `http://localhost:3000/api/checkers/join-room?room=${roomId}&player=${playerName}`
     );
-    const response = await lastValueFrom(request);
-    return response;
+    eventSource.onmessage = ({ data }) => {
+      const parsedData = JSON.parse(data);
+      console.log(parsedData);
+    };
   }
 }

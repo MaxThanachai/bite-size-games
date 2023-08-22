@@ -27,12 +27,9 @@ export class RoomSelectionComponent implements OnInit {
   async getAllRooms(): Promise<void> {
     const result = (await this.checkersService.getAllRooms()) as IRoom[];
     result.map((room) => this.rooms.push(room));
-    console.log(result);
-    console.log(this.rooms);
   }
 
   onClickedRoom(room: IRoom) {
-    console.log(room);
     if (room.id === 'create-new-room') {
       this.router.navigate(['/bite-size-game/checkers/create']);
     }

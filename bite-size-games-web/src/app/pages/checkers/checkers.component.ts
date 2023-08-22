@@ -28,6 +28,9 @@ interface IAttackGrid {
   styleUrls: ['./checkers.component.scss'],
 })
 export class CheckersComponent implements OnInit {
+  roomId: string = '';
+  playerName: string = '';
+
   logMessages: string[] = [];
 
   pieces: IPiece[] = [];
@@ -50,7 +53,17 @@ export class CheckersComponent implements OnInit {
   }
 
   async joinRoom(): Promise<void> {
-    await this.checkersService.joinRoom();
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      this.roomId = urlParams.get('room') ?? '';
+      this.playerName = urlParams.get('player') ?? '';
+      if (!this.roomId || !this.playerName) {
+        throw new Error('Missing room id or player name');
+      }
+      await this.checkersService.joinRoom(this.roomId, this.playerName);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   instantiatePieces(): void {
