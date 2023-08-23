@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CheckersService } from './checkers.service';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CheckersService, IMove, MOVE_TYPE } from './checkers.service';
 
 interface IPiece {
   player: PLAYER;
@@ -43,7 +43,10 @@ export class CheckersComponent implements OnInit {
 
   PLAYER = PLAYER;
 
-  constructor(private checkersService: CheckersService) {}
+  constructor(
+    private checkersService: CheckersService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.instantiatePieces();
@@ -60,7 +63,19 @@ export class CheckersComponent implements OnInit {
       if (!this.roomId || !this.playerName) {
         throw new Error('Missing room id or player name');
       }
-      await this.checkersService.joinRoom(this.roomId, this.playerName);
+      const eventSource = await this.checkersService.joinRoom(
+        this.roomId,
+        this.playerName
+      );
+      eventSource.onmessage = ({ data }) => {
+        const parsedData = JSON.parse(data) as IMove;
+        if (parsedData.player?.playerName === this.playerName) return;
+        if (parsedData.moveType === MOVE_TYPE.END_TURN) {
+          this.endTurn();
+        }
+        console.log(parsedData);
+        this.changeDetectorRef.detectChanges();
+      };
     } catch (e) {
       console.error(e);
     }
@@ -240,7 +255,7 @@ export class CheckersComponent implements OnInit {
     this.selectingPiece.position.x = x;
     this.selectingPiece.position.y = y;
     this.checkPromoted(this.selectingPiece);
-    this.endTurn();
+    this.callEndTurn();
   }
 
   checkPromoted(piece: IPiece | null): void {
@@ -277,8 +292,16 @@ export class CheckersComponent implements OnInit {
     this.possibleMoves = [];
     if (!this.possibleAttacks.length) {
       this.isChainAttacking = false;
-      this.endTurn();
+      this.callEndTurn();
     }
+  }
+
+  callEndTurn(): void {
+    this.checkersService.move(this.roomId, {
+      player: { playerName: this.playerName },
+      moveType: MOVE_TYPE.END_TURN,
+    });
+    this.endTurn();
   }
 
   endTurn(): void {

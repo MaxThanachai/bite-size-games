@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Sse } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Sse } from '@nestjs/common';
 import { Observable, Subject, map } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { ICreateRoom } from './dto/checkers.dto';
@@ -100,6 +100,11 @@ export class CheckersController {
     return thisRoom.moves.pipe(map((move) => JSON.stringify(move)));
   }
 
-  @Post('register-player')
-  registerPlayerInRoom() {}
+  @Post('move/:id')
+  endTurn(@Param('id') roomId: string, @Body() body: IMove): boolean {
+    const thisRoom = this.rooms.find((room) => room.id === roomId);
+    if (!thisRoom) throw new Error(`Room id ${roomId} not found`);
+    thisRoom.moves.next(body);
+    return true;
+  }
 }
