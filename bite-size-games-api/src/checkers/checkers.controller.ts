@@ -63,7 +63,12 @@ export class CheckersController {
 
   @Get('rooms')
   getAllRooms() {
-    return this.rooms;
+    return this.rooms.map((room) => {
+      return {
+        id: room.id,
+        name: room.name,
+      };
+    });
   }
 
   @Sse('join-room')

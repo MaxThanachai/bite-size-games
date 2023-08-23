@@ -32,6 +32,10 @@ export class RoomSelectionComponent implements OnInit {
   onClickedRoom(room: IRoom) {
     if (room.id === 'create-new-room') {
       this.router.navigate(['/bite-size-game/checkers/create']);
+      return;
     }
+    this.router.navigate([`/bite-size-game/checkers/joining`], {
+      queryParams: { room: room.id },
+    });
   }
 }
