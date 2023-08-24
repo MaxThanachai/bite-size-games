@@ -22,7 +22,6 @@ interface IMove {
 interface IPlayer {
   playerId: string;
   playerColor: PLAYER;
-  playerName: string;
 }
 
 interface IPosition {
@@ -74,26 +73,23 @@ export class CheckersController {
   @Sse('join-room')
   joinRoom(
     @Query('room') roomId: string,
-    @Query('player') playerName: string,
+    @Query('player') playerId: string,
   ): Observable<string> {
     console.log(roomId);
-    console.log(playerName);
+    console.log(playerId);
     const thisRoom = this.rooms.find((room) => room.id === roomId);
     if (!thisRoom) throw new Error(`Room id ${roomId} not found`);
     if (thisRoom.players.length > 1) {
       throw new Error(`Room id ${roomId} is full!`);
     }
-    const playerId = uuidv4();
     if (!thisRoom.players.length) {
       thisRoom.players.push({
         playerId,
-        playerName,
         playerColor: PLAYER.BLACK,
       });
     } else {
       thisRoom.players.push({
         playerId,
-        playerName,
         playerColor: PLAYER.WHITE,
       });
     }

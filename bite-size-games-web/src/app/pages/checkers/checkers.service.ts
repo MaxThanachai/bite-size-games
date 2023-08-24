@@ -21,7 +21,6 @@ export interface IMove {
 export interface IPlayer {
   playerId?: string;
   playerColor?: PLAYER;
-  playerName?: string;
 }
 
 export interface IPosition {
@@ -66,9 +65,9 @@ export class CheckersService {
     return response;
   }
 
-  async joinRoom(roomId: string, playerName: string): Promise<EventSource> {
+  async joinRoom(roomId: string, playerId: string): Promise<EventSource> {
     const eventSource = new EventSource(
-      `http://localhost:3000/api/checkers/join-room?room=${roomId}&player=${playerName}`
+      `http://localhost:3000/api/checkers/join-room?room=${roomId}&player=${playerId}`
     );
     return eventSource;
   }

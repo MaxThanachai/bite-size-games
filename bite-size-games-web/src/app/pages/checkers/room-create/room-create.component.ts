@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CheckersService } from '../checkers.service';
 import { Router } from '@angular/router';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-room-create',
@@ -9,7 +10,6 @@ import { Router } from '@angular/router';
 })
 export class RoomCreateComponent implements OnInit {
   roomName: string = '';
-  playerName: string = '';
 
   constructor(
     private checkersService: CheckersService,
@@ -24,7 +24,7 @@ export class RoomCreateComponent implements OnInit {
         this.roomName
       )) as any;
       this.router.navigate([`/bite-size-game/checkers/game`], {
-        queryParams: { room: newRoom.id, player: this.playerName },
+        queryParams: { room: newRoom.id, player: uuidv4() },
       });
     } catch (e) {
       console.error(e);

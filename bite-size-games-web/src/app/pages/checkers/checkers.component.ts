@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CheckersService, IMove, MOVE_TYPE } from './checkers.service';
+import { v4 as uuidv4 } from 'uuid';
 
 interface IPiece {
   player: PLAYER;
@@ -29,7 +30,7 @@ interface IAttackGrid {
 })
 export class CheckersComponent implements OnInit {
   roomId: string = '';
-  playerName: string = '';
+  playerId: string = '';
 
   logMessages: string[] = [];
 
@@ -59,17 +60,20 @@ export class CheckersComponent implements OnInit {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       this.roomId = urlParams.get('room') ?? '';
-      this.playerName = urlParams.get('player') ?? '';
-      if (!this.roomId || !this.playerName) {
-        throw new Error('Missing room id or player name');
+      this.playerId = urlParams.get('player') ?? '';
+      if (!this.roomId) {
+        throw new Error('Missing room id');
+      }
+      if (!this.playerId) {
+        this.playerId = uuidv4();
       }
       const eventSource = await this.checkersService.joinRoom(
         this.roomId,
-        this.playerName
+        this.playerId
       );
       eventSource.onmessage = ({ data }) => {
         const parsedData = JSON.parse(data) as IMove;
-        if (parsedData.player?.playerName === this.playerName) return;
+        if (parsedData.player?.playerId === this.playerId) return;
         if (parsedData.moveType === MOVE_TYPE.END_TURN) {
           this.endTurn();
         }
@@ -298,7 +302,7 @@ export class CheckersComponent implements OnInit {
 
   callEndTurn(): void {
     this.checkersService.move(this.roomId, {
-      player: { playerName: this.playerName },
+      player: { playerId: this.playerId },
       moveType: MOVE_TYPE.END_TURN,
     });
     this.endTurn();

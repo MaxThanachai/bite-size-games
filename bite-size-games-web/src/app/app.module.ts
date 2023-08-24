@@ -10,7 +10,6 @@ import { CheckersComponent } from './pages/checkers/checkers.component';
 import { RoomSelectionComponent } from './pages/checkers/room-selection/room-selection.component';
 import { RoomCreateComponent } from './pages/checkers/room-create/room-create.component';
 import { FormsModule } from '@angular/forms';
-import { RoomJoiningComponent } from './pages/checkers/room-joining/room-joining.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +19,6 @@ import { RoomJoiningComponent } from './pages/checkers/room-joining/room-joining
     CheckersComponent,
     RoomSelectionComponent,
     RoomCreateComponent,
-    RoomJoiningComponent,
   ],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, FormsModule],
   providers: [],
