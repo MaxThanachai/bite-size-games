@@ -16,6 +16,7 @@ export interface IMove {
   pieceInitialPosition?: IPosition;
   landingGrid?: IPosition;
   enemyPiecePosition?: IPosition;
+  nextPlayer?: IPlayer;
 }
 
 export interface IPlayer {

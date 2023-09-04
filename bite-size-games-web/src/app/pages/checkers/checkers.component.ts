@@ -44,6 +44,8 @@ export class CheckersComponent implements OnInit {
 
   PLAYER = PLAYER;
 
+  currentPlayerId: string | null = null;
+
   constructor(
     private checkersService: CheckersService,
     private changeDetectorRef: ChangeDetectorRef
@@ -204,6 +206,7 @@ export class CheckersComponent implements OnInit {
 
   onTapGrid(x: number, y: number): void {
     this.logMessages.push(`tap ${x}, ${y}`);
+    if (this.currentPlayerId !== this.playerId) return;
     const piece = this.getPieceAt(x, y);
     if (piece && this.isMovablePiece(piece)) {
       this.selectPiece(piece);
@@ -353,6 +356,7 @@ export class CheckersComponent implements OnInit {
   }
 
   interpretMessagesFromStream(move: IMove): void {
+    this.currentPlayerId = move.nextPlayer?.playerId || null;
     if (move.player?.playerId === this.playerId) return;
     if (move.moveType === MOVE_TYPE.END_TURN) {
       this.endTurn();

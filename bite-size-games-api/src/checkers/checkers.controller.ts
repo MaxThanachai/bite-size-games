@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query, Sse } from '@nestjs/common';
-import { Observable, Subject, map } from 'rxjs';
+import { Observable, map, ReplaySubject } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { ICreateRoom } from './dto/checkers.dto';
 
@@ -8,7 +8,7 @@ interface IRoom {
   name: string;
   players: IPlayer[];
   currentTurn: IPlayer | null;
-  moves: Subject<IMove>;
+  moves: ReplaySubject<IMove>;
 }
 
 interface IMove {
@@ -17,6 +17,7 @@ interface IMove {
   pieceInitialPosition: IPosition;
   landingGrid: IPosition;
   enemyPiecePosition: IPosition;
+  nextPlayer: IPlayer;
 }
 
 interface IPlayer {
@@ -54,7 +55,7 @@ export class CheckersController {
       name: body.name,
       players: [],
       currentTurn: null,
-      moves: new Subject<IMove>(),
+      moves: new ReplaySubject<IMove>(),
     };
     this.rooms.push(newRoom);
     return newRoom;
@@ -75,18 +76,20 @@ export class CheckersController {
     @Query('room') roomId: string,
     @Query('player') playerId: string,
   ): Observable<string> {
-    console.log(roomId);
-    console.log(playerId);
     const thisRoom = this.rooms.find((room) => room.id === roomId);
     if (!thisRoom) throw new Error(`Room id ${roomId} not found`);
     if (thisRoom.players.length > 1) {
       throw new Error(`Room id ${roomId} is full!`);
     }
     if (!thisRoom.players.length) {
-      thisRoom.players.push({
+      const player = {
         playerId,
         playerColor: PLAYER.BLACK,
-      });
+      };
+      thisRoom.players.push(player);
+      thisRoom.moves.next({
+        nextPlayer: player,
+      } as IMove);
     } else {
       thisRoom.players.push({
         playerId,
@@ -100,6 +103,12 @@ export class CheckersController {
   endTurn(@Param('id') roomId: string, @Body() body: IMove): boolean {
     const thisRoom = this.rooms.find((room) => room.id === roomId);
     if (!thisRoom) throw new Error(`Room id ${roomId} not found`);
+    if (body.moveType === MOVE_TYPE.END_TURN) {
+      body.nextPlayer = thisRoom.players.find(
+        (player) => player.playerId !== body.player.playerId,
+      );
+      if (!body.nextPlayer) throw new Error('Failed to assign next player');
+    }
     thisRoom.moves.next(body);
     return true;
   }
