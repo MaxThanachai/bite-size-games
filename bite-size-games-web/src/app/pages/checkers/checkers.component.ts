@@ -215,7 +215,6 @@ export class CheckersComponent implements OnInit {
       this.isPossibleMoveGrid(x, y) &&
       !this.isChainAttacking
     ) {
-      // this.movePieceAndProgressToNextTurn(x, y);
       this.callMove(x, y);
     } else if (
       this.selectingPiece !== null &&
@@ -277,13 +276,19 @@ export class CheckersComponent implements OnInit {
       (grid) => grid.landingGrid.x === x && grid.landingGrid.y === y
     );
     if (!attackGrid || !this.selectingPiece) return;
+    const pieceInitialPosition = {
+      x: this.selectingPiece.position.x,
+      y: this.selectingPiece.position.y,
+    };
     this.selectingPiece.position.x = x;
     this.selectingPiece.position.y = y;
     const enemyPieceIndex = this.pieces.findIndex(
       (piece) => piece === attackGrid.enemyPiece
     );
     if (enemyPieceIndex === -1) return;
+    const enemyPiecePosition = this.pieces[enemyPieceIndex].position;
     this.pieces.splice(enemyPieceIndex, 1);
+    this.callAttack(pieceInitialPosition, { x, y }, enemyPiecePosition);
     this.checkPromoted(this.selectingPiece);
     this.isChainAttacking = true;
     this.chainAttack(this.selectingPiece);
@@ -356,7 +361,8 @@ export class CheckersComponent implements OnInit {
   }
 
   interpretMessagesFromStream(move: IMove): void {
-    this.currentPlayerId = move.nextPlayer?.playerId || null;
+    console.log(move);
+    this.currentPlayerId = move.nextPlayer?.playerId || this.currentPlayerId;
     if (move.player?.playerId === this.playerId) return;
     if (move.moveType === MOVE_TYPE.END_TURN) {
       this.endTurn();
@@ -381,7 +387,37 @@ export class CheckersComponent implements OnInit {
         move.landingGrid?.y
       );
     }
-    console.log(move);
+    if (move.moveType === MOVE_TYPE.ATTACK) {
+      if (!move.pieceInitialPosition)
+        throw new Error(
+          'Trying to move piece without specify starting position'
+        );
+      if (!move.landingGrid)
+        throw new Error(
+          'Trying to move piece without specify landing position'
+        );
+      if (!move.enemyPiecePosition)
+        throw new Error('Trying to attack without specify enemy position');
+      const piece = this.getPieceAt(
+        move.pieceInitialPosition.x,
+        move.pieceInitialPosition.y
+      );
+      const enemyPiece = this.getPieceAt(
+        move.enemyPiecePosition.x,
+        move.enemyPiecePosition.y
+      );
+      if (!piece) throw Error('Trying to move piece that does not exist');
+      if (!enemyPiece)
+        throw new Error('Trying to attack piece that does not exist');
+      piece.position = move.landingGrid;
+      const enemyPieceIndex = this.pieces.findIndex(
+        (piece) => piece.position === enemyPiece.position
+      );
+      if (enemyPieceIndex < 0)
+        throw Error('Trying to attack piece that does not exist');
+      this.pieces.splice(enemyPieceIndex, 1);
+      this.checkPromoted(piece);
+    }
     this.changeDetectorRef.detectChanges();
   }
 
@@ -403,5 +439,20 @@ export class CheckersComponent implements OnInit {
     });
     this.movePieceAndProgressToNextTurn(x, y);
     this.callEndTurn();
+  }
+
+  callAttack(
+    pieceInitialPosition: IPosition,
+    landingGrid: IPosition,
+    enemyPiecePosition: IPosition
+  ): void {
+    if (!this.selectingPiece) return;
+    this.checkersService.move(this.roomId, {
+      player: { playerId: this.playerId },
+      moveType: MOVE_TYPE.ATTACK,
+      pieceInitialPosition,
+      landingGrid,
+      enemyPiecePosition,
+    });
   }
 }
