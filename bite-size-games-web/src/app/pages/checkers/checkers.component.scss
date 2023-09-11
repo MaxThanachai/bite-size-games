@@ -155,6 +155,9 @@
           outline: 4px solid $color-text-dark-green;
         }
       }
+      &.reverse {
+        flex-direction: column-reverse;
+      }
     }
     .surrender-button {
       flex: 1;

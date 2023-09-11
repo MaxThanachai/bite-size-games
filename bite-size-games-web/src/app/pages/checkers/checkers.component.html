@@ -2,8 +2,8 @@
   <div class="banner"><span>PURE WEBHOOK CHECKERS</span></div>
   <div class="checker-board-container">
     <div class="checker-board">
-      <ng-container *ngFor="let y of getBoardLength(-1)">
-        <ng-container *ngFor="let x of getBoardLength(-1)">
+      <ng-container *ngFor="let y of getBoardLength()">
+        <ng-container *ngFor="let x of getBoardLength()">
           <div
             class="grid"
             [ngClass]="{
@@ -45,7 +45,10 @@
     </div>
   </div>
   <div class="game-status">
-    <div class="remaining-pieces-container">
+    <div
+      class="remaining-pieces-container"
+      [ngClass]="{ reverse: playerColor === PLAYER.BLACK }"
+    >
       <div
         class="remaining-pieces"
         [ngClass]="{ 'current-player': currentTurn === PLAYER.BLACK }"

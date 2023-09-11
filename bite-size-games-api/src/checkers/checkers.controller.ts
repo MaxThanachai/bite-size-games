@@ -36,6 +36,7 @@ export enum PLAYER {
 }
 
 export enum MOVE_TYPE {
+  GAME_START = 'GAME_START',
   MOVE = 'MOVE',
   ATTACK = 'ATTACK',
   END_TURN = 'END TURN',
@@ -88,6 +89,7 @@ export class CheckersController {
       };
       thisRoom.players.push(player);
       thisRoom.moves.next({
+        moveType: MOVE_TYPE.GAME_START,
         nextPlayer: player,
       } as IMove);
     } else {

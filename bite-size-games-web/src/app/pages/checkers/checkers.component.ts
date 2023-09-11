@@ -31,6 +31,7 @@ interface IAttackGrid {
 export class CheckersComponent implements OnInit {
   roomId: string = '';
   playerId: string = '';
+  playerColor: PLAYER = PLAYER.WHITE;
 
   logMessages: string[] = [];
 
@@ -103,8 +104,8 @@ export class CheckersComponent implements OnInit {
     }
   }
 
-  getBoardLength(direction: 1 | -1): number[] {
-    if (direction === 1) return [0, 1, 2, 3, 4, 5, 6, 7];
+  getBoardLength(): number[] {
+    if (this.playerColor === PLAYER.BLACK) return [0, 1, 2, 3, 4, 5, 6, 7];
     else return [7, 6, 5, 4, 3, 2, 1, 0];
   }
 
@@ -364,6 +365,12 @@ export class CheckersComponent implements OnInit {
     console.log(move);
     this.currentPlayerId = move.nextPlayer?.playerId || this.currentPlayerId;
     if (move.player?.playerId === this.playerId) return;
+    if (move.moveType === MOVE_TYPE.GAME_START) {
+      this.playerColor =
+        this.playerId === move.nextPlayer?.playerId
+          ? PLAYER.BLACK
+          : PLAYER.WHITE;
+    }
     if (move.moveType === MOVE_TYPE.END_TURN) {
       this.endTurn();
     }
