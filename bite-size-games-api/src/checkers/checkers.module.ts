@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { CheckersController } from './checkers.controller';
-// import { CatsController } from './cats.controller';
-// import { CatsService } from './cats.service';
+import { CheckersLogic } from './checkers.logic';
 
 @Module({
   controllers: [CheckersController],
-  providers: [],
+  providers: [CheckersLogic],
 })
 export class CheckersModule {}

@@ -15,7 +15,8 @@
               highlight:
                 isPossibleMoveGrid(x, y) && !isPossibleAttackGrid(x, y),
               'highlight-red': isPossibleAttackGrid(x, y),
-              'highlight-yellow': isPieceWithAttackMove(x, y)
+              'highlight-yellow':
+                isPieceWithAttackMove(x, y) || isChainAttackingPiece(x, y)
             }"
             (click)="onTapGrid(x, y)"
           >
@@ -39,7 +40,7 @@
   </div>
   <div class="log-container">
     <div class="log-content">
-      <span *ngFor="let log of logMessages.reverse()">
+      <span *ngFor="let log of logMessages">
         {{ log }}
       </span>
     </div>

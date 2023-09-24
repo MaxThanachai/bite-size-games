@@ -1,27 +1,13 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { CheckersService, IMove, MOVE_TYPE } from './checkers.service';
+import { CheckersService } from './checkers.service';
 import { v4 as uuidv4 } from 'uuid';
-
-interface IPiece {
-  player: PLAYER;
-  isPromoted: boolean;
-  position: IPosition;
-}
-
-enum PLAYER {
-  BLACK = 'black',
-  WHITE = 'white',
-}
-
-interface IPosition {
-  x: number;
-  y: number;
-}
-
-interface IAttackGrid {
-  landingGrid: IPosition;
-  enemyPiece: IPiece;
-}
+import { MOVE_TYPE, PLAYER } from './interfaces/checkers.enum';
+import {
+  IPosition,
+  IAttackGrid,
+  IPiece,
+  IMoveResponse,
+} from './interfaces/checkers.interface';
 
 @Component({
   selector: 'app-checker',
@@ -29,6 +15,8 @@ interface IAttackGrid {
   styleUrls: ['./checkers.component.scss'],
 })
 export class CheckersComponent implements OnInit {
+  PLAYER = PLAYER;
+
   roomId: string = '';
   playerId: string = '';
   playerColor: PLAYER = PLAYER.WHITE;
@@ -37,15 +25,13 @@ export class CheckersComponent implements OnInit {
 
   pieces: IPiece[] = [];
   selectingPiece: IPiece | null = null;
+  chainAttackingPiece: IPiece | null = null;
+
   possibleMoves: IPosition[] = [];
   possibleAttacks: IAttackGrid[] = [];
   piecesWithAttackMoves: IPiece[] = [];
+
   currentTurn: PLAYER = PLAYER.BLACK;
-  isChainAttacking = false;
-
-  PLAYER = PLAYER;
-
-  currentPlayerId: string | null = null;
 
   constructor(
     private checkersService: CheckersService,
@@ -53,13 +39,11 @@ export class CheckersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.instantiatePieces();
     this.joinRoom();
-    this.logMessages.push(`Game start!`);
-    this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
   }
 
   async joinRoom(): Promise<void> {
+    this.logMessages.push(`Joined room`);
     try {
       const urlParams = new URLSearchParams(window.location.search);
       this.roomId = urlParams.get('room') ?? '';
@@ -75,32 +59,11 @@ export class CheckersComponent implements OnInit {
         this.playerId
       );
       eventSource.onmessage = ({ data }) => {
-        const parsedData = JSON.parse(data) as IMove;
+        const parsedData = JSON.parse(data) as IMoveResponse;
         this.interpretMessagesFromStream(parsedData);
       };
     } catch (e) {
       console.error(e);
-    }
-  }
-
-  instantiatePieces(): void {
-    this.pieces = [];
-    for (let i = 0; i < 8; i++) {
-      this.pieces.push({
-        player: PLAYER.BLACK,
-        isPromoted: false,
-        position: {
-          x: i,
-          y: 6 + (i % 2),
-        },
-      });
-    }
-    for (let i = 0; i < 8; i++) {
-      this.pieces.push({
-        player: PLAYER.WHITE,
-        isPromoted: false,
-        position: { x: i, y: i % 2 },
-      });
     }
   }
 
@@ -137,12 +100,58 @@ export class CheckersComponent implements OnInit {
     );
   }
 
+  isChainAttackingPiece(x: number, y: number): boolean {
+    return Boolean(
+      this.chainAttackingPiece &&
+        this.isEqualPosition({ x, y }, this.chainAttackingPiece.position)
+    );
+  }
+
   isValidLandingGrid(x: number, y: number) {
     return this.isInBoard(x, y) && this.getPieceAt(x, y) === null;
   }
 
   isInBoard(x: number, y: number): boolean {
     return x >= 0 && x <= 7 && y >= 0 && y <= 7;
+  }
+
+  isIncludedPieces(pieces: IPiece[], targetPiece: IPiece): boolean {
+    return (
+      pieces.filter(
+        (piece) =>
+          piece.player === targetPiece.player &&
+          this.isEqualPosition(piece.position, targetPiece.position)
+      ).length > 0
+    );
+  }
+
+  isEqualPosition(position1: IPosition, position2: IPosition) {
+    return position1.x === position2.x && position1.y === position2.y;
+  }
+
+  getDirection(piece: IPiece): number {
+    return piece.player === 'black' ? -1 : 1;
+  }
+
+  getPieceAt(x: number, y: number): IPiece | null {
+    const index = this.pieces.findIndex(
+      (piece) => piece.position.x === x && piece.position.y === y
+    );
+    if (index === -1) return null;
+    return this.pieces[index];
+  }
+
+  isMovablePiece(piece: IPiece): boolean {
+    return (
+      piece.player === this.currentTurn &&
+      (!this.chainAttackingPiece ||
+        this.isEqualPosition(
+          this.chainAttackingPiece.position,
+          piece.position
+        )) &&
+      (!this.piecesWithAttackMoves.length ||
+        this.isIncludedPieces(this.piecesWithAttackMoves, piece))
+    );
   }
 
   calculatePossibleMoves(selectedPiece: IPiece): void {
@@ -193,28 +202,21 @@ export class CheckersComponent implements OnInit {
     }
   }
 
-  getDirection(piece: IPiece): number {
-    return piece.player === 'black' ? -1 : 1;
-  }
-
-  getPieceAt(x: number, y: number): IPiece | null {
-    const index = this.pieces.findIndex(
-      (piece) => piece.position.x === x && piece.position.y === y
-    );
-    if (index === -1) return null;
-    return this.pieces[index];
-  }
-
   onTapGrid(x: number, y: number): void {
     this.logMessages.push(`tap ${x}, ${y}`);
-    if (this.currentPlayerId !== this.playerId) return;
+    if (this.currentTurn !== this.playerColor) {
+      this.logMessages.push(
+        'Please wait for another player to finish the turn'
+      );
+      return;
+    }
     const piece = this.getPieceAt(x, y);
     if (piece && this.isMovablePiece(piece)) {
       this.selectPiece(piece);
     } else if (
       this.selectingPiece !== null &&
       this.isPossibleMoveGrid(x, y) &&
-      !this.isChainAttacking
+      !this.chainAttackingPiece
     ) {
       this.callMove(x, y);
     } else if (
@@ -222,18 +224,9 @@ export class CheckersComponent implements OnInit {
       this.isPossibleAttackGrid(x, y)
     ) {
       this.attackAndProgress(x, y);
-    } else if (this.selectingPiece !== null && !this.isChainAttacking) {
+    } else if (this.selectingPiece !== null && !this.chainAttackingPiece) {
       this.deselectPiece();
     }
-  }
-
-  isMovablePiece(piece: IPiece): boolean {
-    return (
-      piece.player === this.currentTurn &&
-      !this.isChainAttacking &&
-      (!this.piecesWithAttackMoves.length ||
-        this.piecesWithAttackMoves.includes(piece))
-    );
   }
 
   selectPiece(piece: IPiece): void {
@@ -253,25 +246,6 @@ export class CheckersComponent implements OnInit {
     this.logMessages.push(`Deselected`);
   }
 
-  movePieceAndProgressToNextTurn(x: number, y: number): void {
-    if (!this.selectingPiece) return;
-    this.selectingPiece.position.x = x;
-    this.selectingPiece.position.y = y;
-    this.checkPromoted(this.selectingPiece);
-  }
-
-  checkPromoted(piece: IPiece | null): void {
-    if (!piece || piece.isPromoted) return;
-    const direction = this.getDirection(piece);
-    if (
-      (direction === -1 && piece.position.y === 0) ||
-      (direction === 1 && piece.position.y === 7)
-    ) {
-      piece.isPromoted = true;
-      this.logMessages.push(`Promoted a piece of player: ${this.currentTurn}`);
-    }
-  }
-
   attackAndProgress(x: number, y: number): void {
     const attackGrid = this.possibleAttacks.find(
       (grid) => grid.landingGrid.x === x && grid.landingGrid.y === y
@@ -281,36 +255,18 @@ export class CheckersComponent implements OnInit {
       x: this.selectingPiece.position.x,
       y: this.selectingPiece.position.y,
     };
-    this.selectingPiece.position.x = x;
-    this.selectingPiece.position.y = y;
     const enemyPieceIndex = this.pieces.findIndex(
       (piece) => piece === attackGrid.enemyPiece
     );
     if (enemyPieceIndex === -1) return;
     const enemyPiecePosition = this.pieces[enemyPieceIndex].position;
-    this.pieces.splice(enemyPieceIndex, 1);
     this.callAttack(pieceInitialPosition, { x, y }, enemyPiecePosition);
-    this.checkPromoted(this.selectingPiece);
-    this.isChainAttacking = true;
-    this.chainAttack(this.selectingPiece);
-  }
-
-  chainAttack(selectingPiece: IPiece): void {
-    this.calculatePossibleMoves(selectingPiece);
-    this.possibleMoves = [];
-    if (!this.possibleAttacks.length) {
-      this.isChainAttacking = false;
-      this.callEndTurn();
-    }
   }
 
   endTurn(): void {
-    this.deselectPiece();
-    this.currentTurn =
-      this.currentTurn === PLAYER.BLACK ? PLAYER.WHITE : PLAYER.BLACK;
+    this.chainAttackingPiece = null;
     this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
     this.checkForceAttacks();
-    this.checkGameEnded();
   }
 
   checkForceAttacks(): void {
@@ -330,122 +286,88 @@ export class CheckersComponent implements OnInit {
     });
   }
 
-  checkGameEnded(): void {
-    const blackPieces = this.pieces.filter(
-      (piece) => piece.player === PLAYER.BLACK
-    );
-    const whitePieces = this.pieces.filter(
-      (piece) => piece.player === PLAYER.WHITE
-    );
-    if (!blackPieces.length) {
-      this.logMessages.push(`Player white win`);
-    } else if (!whitePieces.length) {
-      this.logMessages.push(`Player black win`);
-    } else {
-      return;
-    }
-    this.resetGame();
-    this.logMessages.push(`-------------------------------`);
-  }
+  // TODO: Move to BE
+  // checkGameEnded(): void {
+  //   const blackPieces = this.pieces.filter(
+  //     (piece) => piece.player === PLAYER.BLACK
+  //   );
+  //   const whitePieces = this.pieces.filter(
+  //     (piece) => piece.player === PLAYER.WHITE
+  //   );
+  //   if (!blackPieces.length) {
+  //     this.logMessages.push(`Player white win`);
+  //   } else if (!whitePieces.length) {
+  //     this.logMessages.push(`Player black win`);
+  //   } else {
+  //     return;
+  //   }
+  //   this.resetGame();
+  //   this.logMessages.push(`-------------------------------`);
+  // }
 
   onPressedSurrender(): void {
     if (window.confirm('Do you really want to surrender?')) {
-      this.deselectPiece();
-      this.logMessages.push(`Player ${this.currentTurn} surrendered`);
-      this.resetGame();
-      this.logMessages.push(`-------------------------------`);
+      // TODO: Move to BE
+      // this.deselectPiece();
+      // this.logMessages.push(`Player ${this.currentTurn} surrendered`);
+      // this.resetGame();
+      // this.logMessages.push(`-------------------------------`);
     }
   }
 
-  resetGame(): void {
-    this.instantiatePieces();
-  }
+  // TODO: Move to BE
+  // resetGame(): void {
+  //   this.instantiatePieces();
+  // }
 
-  interpretMessagesFromStream(move: IMove): void {
+  interpretMessagesFromStream(move: IMoveResponse): void {
     console.log(move);
-    this.currentPlayerId = move.nextPlayer?.playerId || this.currentPlayerId;
-    if (move.player?.playerId === this.playerId) return;
+    this.currentTurn = move.currentTurn.playerColor;
+    this.pieces = move.pieces || [];
+    this.possibleMoves = [];
+    this.possibleAttacks = [];
+    this.piecesWithAttackMoves = [];
+    this.deselectPiece();
     if (move.moveType === MOVE_TYPE.GAME_START) {
+      this.logMessages.push(`Game start`);
+      this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
       this.playerColor =
-        this.playerId === move.nextPlayer?.playerId
+        this.playerId === move.currentTurn.playerId
           ? PLAYER.BLACK
           : PLAYER.WHITE;
     }
     if (move.moveType === MOVE_TYPE.END_TURN) {
       this.endTurn();
     }
-    if (move.moveType === MOVE_TYPE.MOVE) {
-      if (!move.pieceInitialPosition)
-        throw new Error(
-          'Trying to move piece without specify starting position'
-        );
-      if (!move.landingGrid)
-        throw new Error(
-          'Trying to move piece without specify landing position'
-        );
-      const piece = this.getPieceAt(
-        move.pieceInitialPosition?.x,
-        move.pieceInitialPosition?.y
-      );
-      if (!piece) throw Error('Trying to move piece that does not exist');
-      this.selectingPiece = piece;
-      this.movePieceAndProgressToNextTurn(
-        move.landingGrid?.x,
-        move.landingGrid?.y
-      );
-    }
-    if (move.moveType === MOVE_TYPE.ATTACK) {
-      if (!move.pieceInitialPosition)
-        throw new Error(
-          'Trying to move piece without specify starting position'
-        );
-      if (!move.landingGrid)
-        throw new Error(
-          'Trying to move piece without specify landing position'
-        );
-      if (!move.enemyPiecePosition)
-        throw new Error('Trying to attack without specify enemy position');
-      const piece = this.getPieceAt(
-        move.pieceInitialPosition.x,
-        move.pieceInitialPosition.y
-      );
-      const enemyPiece = this.getPieceAt(
-        move.enemyPiecePosition.x,
-        move.enemyPiecePosition.y
-      );
-      if (!piece) throw Error('Trying to move piece that does not exist');
-      if (!enemyPiece)
-        throw new Error('Trying to attack piece that does not exist');
-      piece.position = move.landingGrid;
-      const enemyPieceIndex = this.pieces.findIndex(
-        (piece) => piece.position === enemyPiece.position
-      );
-      if (enemyPieceIndex < 0)
-        throw Error('Trying to attack piece that does not exist');
-      this.pieces.splice(enemyPieceIndex, 1);
-      this.checkPromoted(piece);
+    if (
+      move.moveType === MOVE_TYPE.ATTACK &&
+      move.chainAttackingPiecePosition
+    ) {
+      this.setChainAttack(move);
     }
     this.changeDetectorRef.detectChanges();
   }
 
-  callEndTurn(): void {
-    this.checkersService.move(this.roomId, {
-      player: { playerId: this.playerId },
-      moveType: MOVE_TYPE.END_TURN,
-    });
-    this.endTurn();
+  setChainAttack(move: IMoveResponse): void {
+    this.chainAttackingPiece = this.getPieceAt(
+      move.chainAttackingPiecePosition!.x,
+      move.chainAttackingPiecePosition!.y
+    );
+    if (!this.chainAttackingPiece) {
+      const msg = 'Invalid force selecting message from the server';
+      this.logMessages.push(msg);
+      console.error(msg);
+    } else this.selectPiece(this.chainAttackingPiece);
   }
 
   callMove(x: number, y: number): void {
     if (!this.selectingPiece) return;
     this.checkersService.move(this.roomId, {
-      player: { playerId: this.playerId },
+      player: { playerId: this.playerId, playerColor: this.playerColor },
       moveType: MOVE_TYPE.MOVE,
       pieceInitialPosition: this.selectingPiece?.position,
       landingGrid: { x, y },
     });
-    this.movePieceAndProgressToNextTurn(x, y);
-    this.callEndTurn();
   }
 
   callAttack(
@@ -455,7 +377,7 @@ export class CheckersComponent implements OnInit {
   ): void {
     if (!this.selectingPiece) return;
     this.checkersService.move(this.roomId, {
-      player: { playerId: this.playerId },
+      player: { playerId: this.playerId, playerColor: this.playerColor },
       moveType: MOVE_TYPE.ATTACK,
       pieceInitialPosition,
       landingGrid,

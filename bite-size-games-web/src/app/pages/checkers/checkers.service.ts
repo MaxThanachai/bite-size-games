@@ -1,45 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Subject, lastValueFrom } from 'rxjs';
-
-export interface IRoom {
-  id: string;
-  name: string;
-  players: IPlayer[];
-  currentTurn: IPlayer | null;
-  moves: Subject<IMove>;
-}
-
-export interface IMove {
-  player?: IPlayer;
-  moveType: MOVE_TYPE;
-  pieceInitialPosition?: IPosition;
-  landingGrid?: IPosition;
-  enemyPiecePosition?: IPosition;
-  nextPlayer?: IPlayer;
-}
-
-export interface IPlayer {
-  playerId?: string;
-  playerColor?: PLAYER;
-}
-
-export interface IPosition {
-  x: number;
-  y: number;
-}
-
-export enum PLAYER {
-  WHITE = 'white',
-  BLACK = 'black',
-}
-
-export enum MOVE_TYPE {
-  GAME_START = 'GAME_START',
-  MOVE = 'MOVE',
-  ATTACK = 'ATTACK',
-  END_TURN = 'END TURN',
-}
+import { lastValueFrom } from 'rxjs';
+import { IMoveRequest } from './interfaces/checkers.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -74,7 +36,7 @@ export class CheckersService {
     return eventSource;
   }
 
-  async move(roomId: string, move: IMove) {
+  async move(roomId: string, move: IMoveRequest) {
     const request = this.http.post(
       `http://localhost:3000/api/checkers/move/${roomId}`,
       move,
