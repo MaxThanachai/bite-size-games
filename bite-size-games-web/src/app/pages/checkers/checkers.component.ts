@@ -224,8 +224,6 @@ export class CheckersComponent implements OnInit {
       this.isPossibleAttackGrid(x, y)
     ) {
       this.callAttack(x, y);
-      // TODO: Remove
-      // this.attackAndProgress(x, y);
     } else if (this.selectingPiece !== null && !this.chainAttackingPiece) {
       this.deselectPiece();
     }
@@ -247,26 +245,6 @@ export class CheckersComponent implements OnInit {
     this.possibleAttacks = [];
     this.logMessages.push(`Deselected`);
   }
-
-  // TODO: Remove
-  // attackAndProgress(x: number, y: number): void {
-  //   const attackGrid = this.possibleAttacks.find(
-  //     (grid) => grid.landingGrid.x === x && grid.landingGrid.y === y
-  //   );
-  //   if (!attackGrid || !this.selectingPiece) return;
-  //   // const pieceInitialPosition = {
-  //   //   x: this.selectingPiece.position.x,
-  //   //   y: this.selectingPiece.position.y,
-  //   // };
-  //   // const enemyPieceIndex = this.pieces.findIndex(
-  //   //   (piece) => piece === attackGrid.enemyPiece
-  //   // );
-  //   // if (enemyPieceIndex === -1) return;
-  //   // const enemyPiecePosition = this.pieces[enemyPieceIndex].position;
-  //   // this.callAttack(pieceInitialPosition, { x, y }, enemyPiecePosition);
-
-  //   // this.callAttack(this.selectingPiece.position, { x, y }, attackGrid.enemyPiece.position);
-  // }
 
   endTurn(): void {
     this.chainAttackingPiece = null;
@@ -374,22 +352,6 @@ export class CheckersComponent implements OnInit {
       landingGrid: { x, y },
     });
   }
-
-  // TODO: Remove
-  // callAttack(
-  //   pieceInitialPosition: IPosition,
-  //   landingGrid: IPosition,
-  //   enemyPiecePosition: IPosition
-  // ): void {
-  //   if (!this.selectingPiece) return;
-  //   this.checkersService.move(this.roomId, {
-  //     player: { playerId: this.playerId, playerColor: this.playerColor },
-  //     moveType: MOVE_TYPE.ATTACK,
-  //     pieceInitialPosition,
-  //     landingGrid,
-  //     enemyPiecePosition,
-  //   });
-  // }
 
   callAttack(x: number, y: number): void {
     const attackGrid = this.possibleAttacks.find(

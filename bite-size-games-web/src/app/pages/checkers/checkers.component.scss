@@ -28,6 +28,18 @@
   }
 }
 
+@keyframes selecting-piece-border {
+  0% {
+    border: 8px solid $color-text-bright-green;
+  }
+  50% {
+    border: 2px solid $color-text-light-gray;
+  }
+  100% {
+    border: 8px solid $color-text-bright-green;
+  }
+}
+
 .wrapper {
   width: 100%;
   height: 100%;
@@ -87,6 +99,11 @@
           }
           &.white {
             background-color: $color-text-light-gray;
+          }
+          &.selecting {
+            animation-name: selecting-piece-border;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
           }
           img {
             margin: auto;

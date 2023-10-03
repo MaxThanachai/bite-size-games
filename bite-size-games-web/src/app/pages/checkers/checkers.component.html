@@ -25,7 +25,8 @@
               class="piece"
               [ngClass]="{
                 black: getPieceAt(x, y)?.player?.valueOf() === 'black',
-                white: getPieceAt(x, y)?.player?.valueOf() === 'white'
+                white: getPieceAt(x, y)?.player?.valueOf() === 'white',
+                selecting: selectingPiece === getPieceAt(x, y)
               }"
             >
               <img
