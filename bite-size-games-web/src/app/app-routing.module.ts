@@ -7,33 +7,30 @@ import { RoomSelectionComponent } from './pages/checkers/room-selection/room-sel
 import { RoomCreateComponent } from './pages/checkers/room-create/room-create.component';
 
 const routes: Routes = [
+  // NOTE: Currently, this project only contains a game.
   {
     path: '',
-    component: LandingPageComponent,
+    //   component: LandingPageComponent,
+    // },
+    // {
+    // path: 'bite-size-game',
+    // children: [
+    component: GameMenusComponent,
   },
   {
-    path: 'bite-size-game',
+    path: 'checkers',
     children: [
       {
         path: '',
-        component: GameMenusComponent,
+        component: RoomSelectionComponent,
       },
       {
-        path: 'checkers',
-        children: [
-          {
-            path: '',
-            component: RoomSelectionComponent,
-          },
-          {
-            path: 'create',
-            component: RoomCreateComponent,
-          },
-          {
-            path: 'game',
-            component: CheckersComponent,
-          },
-        ],
+        path: 'create',
+        component: RoomCreateComponent,
+      },
+      {
+        path: 'game',
+        component: CheckersComponent,
       },
     ],
   },

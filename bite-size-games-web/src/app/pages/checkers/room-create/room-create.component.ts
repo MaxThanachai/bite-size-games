@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CheckersService } from '../checkers.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
 
 @Component({
@@ -13,7 +13,8 @@ export class RoomCreateComponent implements OnInit {
 
   constructor(
     private checkersService: CheckersService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {}
@@ -23,7 +24,8 @@ export class RoomCreateComponent implements OnInit {
       const newRoom = (await this.checkersService.createRoom(
         this.roomName
       )) as any;
-      this.router.navigate([`/bite-size-game/checkers/game`], {
+      this.router.navigate(['../', 'game'], {
+        relativeTo: this.route,
         queryParams: { room: newRoom.id, player: uuidv4() },
       });
     } catch (e) {
