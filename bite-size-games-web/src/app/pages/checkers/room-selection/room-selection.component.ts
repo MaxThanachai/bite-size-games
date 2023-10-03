@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CheckersService } from '../checkers.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
 
 interface IRoom {
@@ -18,7 +18,8 @@ export class RoomSelectionComponent implements OnInit {
 
   constructor(
     private checkersService: CheckersService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -32,10 +33,11 @@ export class RoomSelectionComponent implements OnInit {
 
   onClickedRoom(room: IRoom) {
     if (room.id === 'create-new-room') {
-      this.router.navigate(['/bite-size-game/checkers/create']);
+      this.router.navigate(['create'], { relativeTo: this.route });
       return;
     }
-    this.router.navigate([`/bite-size-game/checkers/game`], {
+    this.router.navigate([`game`], {
+      relativeTo: this.route,
       queryParams: { room: room.id, player: uuidv4() },
     });
   }
