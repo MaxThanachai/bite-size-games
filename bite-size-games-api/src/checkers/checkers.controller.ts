@@ -20,13 +20,8 @@ export class CheckersController {
   }
 
   @Get('rooms')
-  getAllRooms() {
-    return this.rooms.map((room) => {
-      return {
-        id: room.id,
-        name: room.name,
-      };
-    });
+  getAllRooms(@Query('player') playerId: string) {
+    return this.checkersLogic.getRooms(playerId, this.rooms);
   }
 
   @Sse('join-room')

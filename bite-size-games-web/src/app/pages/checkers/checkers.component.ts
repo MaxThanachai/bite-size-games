@@ -18,7 +18,7 @@ export class CheckersComponent implements OnInit {
   PLAYER = PLAYER;
 
   roomId: string = '';
-  playerId: string = '';
+  playerId!: string;
   playerColor: PLAYER = PLAYER.WHITE;
 
   logMessages: string[] = [];
@@ -39,6 +39,7 @@ export class CheckersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.playerId = this.checkersService.getPlayerId();
     this.joinRoom();
   }
 
@@ -47,17 +48,10 @@ export class CheckersComponent implements OnInit {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       this.roomId = urlParams.get('room') ?? '';
-      this.playerId = urlParams.get('player') ?? '';
       if (!this.roomId) {
         throw new Error('Missing room id');
       }
-      if (!this.playerId) {
-        this.playerId = uuidv4();
-      }
-      const eventSource = await this.checkersService.joinRoom(
-        this.roomId,
-        this.playerId
-      );
+      const eventSource = await this.checkersService.joinRoom(this.roomId);
       eventSource.onmessage = ({ data }) => {
         const parsedData = JSON.parse(data) as IMoveResponse;
         this.interpretMessagesFromStream(parsedData);

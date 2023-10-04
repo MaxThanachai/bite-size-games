@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CheckersService } from '../checkers.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-room-create',
@@ -26,7 +25,9 @@ export class RoomCreateComponent implements OnInit {
       )) as any;
       this.router.navigate(['../', 'game'], {
         relativeTo: this.route,
-        queryParams: { room: newRoom.id, player: uuidv4() },
+        queryParams: {
+          room: newRoom.id,
+        },
       });
     } catch (e) {
       console.error(e);

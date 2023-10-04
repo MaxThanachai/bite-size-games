@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CheckersService } from '../checkers.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { v4 as uuidv4 } from 'uuid';
 
 interface IRoom {
   id: string;
@@ -38,7 +37,9 @@ export class RoomSelectionComponent implements OnInit {
     }
     this.router.navigate([`game`], {
       relativeTo: this.route,
-      queryParams: { room: room.id, player: uuidv4() },
+      queryParams: {
+        room: room.id,
+      },
     });
   }
 }

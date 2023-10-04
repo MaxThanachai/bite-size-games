@@ -14,6 +14,22 @@ import { MOVE_TYPE, PLAYER } from './checkers.enum';
 
 @Injectable()
 export class CheckersLogic {
+  getRooms(playerId: string, rooms: IRoom[]) {
+    return rooms
+      .filter(
+        (room) =>
+          room.players.length < 2 ||
+          room.players.filter((player) => player.playerId === playerId).length >
+            0,
+      )
+      .map((room) => {
+        return {
+          id: room.id,
+          name: room.name,
+        };
+      });
+  }
+
   createNewRoom(name: string): IRoom {
     const id = uuidv4();
     const newRoom = {
