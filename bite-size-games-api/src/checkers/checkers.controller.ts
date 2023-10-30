@@ -31,16 +31,19 @@ export class CheckersController {
   ): Observable<string> {
     const thisRoom = this.rooms.find((room) => room.id === roomId);
     if (!thisRoom) throw new Error(`Room id ${roomId} not found`);
-    if (thisRoom.players.length > 1) {
+    if (
+      thisRoom.players.length > 1 &&
+      !this.checkersLogic.isPlayerInRoom(playerId, thisRoom)
+    ) {
       throw new Error(`Room id ${roomId} is full!`);
     }
-    if (!thisRoom.players.length) {
+    if (thisRoom.players.length === 0) {
       const player = {
         playerId,
         playerColor: PLAYER.BLACK,
       };
       thisRoom.players.push(player);
-    } else {
+    } else if (thisRoom.players.length === 1) {
       const player = {
         playerId,
         playerColor: PLAYER.WHITE,

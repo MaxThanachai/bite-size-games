@@ -30,6 +30,12 @@ export class CheckersLogic {
       });
   }
 
+  isPlayerInRoom(playerId: string, room: IRoom): boolean {
+    return (
+      room.players.find((player) => player.playerId === playerId) !== undefined
+    );
+  }
+
   createNewRoom(name: string): IRoom {
     const id = uuidv4();
     const newRoom = {
