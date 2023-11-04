@@ -44,7 +44,7 @@ export class CheckersComponent implements OnInit {
   }
 
   async joinRoom(): Promise<void> {
-    this.logMessages.push(`Joined room`);
+    this.logMessages.unshift(`Joined room`);
     try {
       const urlParams = new URLSearchParams(window.location.search);
       this.roomId = urlParams.get('room') ?? '';
@@ -197,9 +197,9 @@ export class CheckersComponent implements OnInit {
   }
 
   onTapGrid(x: number, y: number): void {
-    this.logMessages.push(`tap ${x}, ${y}`);
+    this.logMessages.unshift(`tap ${x}, ${y}`);
     if (this.currentTurn !== this.playerColor) {
-      this.logMessages.push(
+      this.logMessages.unshift(
         'Please wait for another player to finish the turn'
       );
       return;
@@ -226,7 +226,7 @@ export class CheckersComponent implements OnInit {
   selectPiece(piece: IPiece): void {
     this.selectingPiece = piece;
     this.calculatePossibleMoves(piece);
-    this.logMessages.push(
+    this.logMessages.unshift(
       `selecting ${piece.position.x}, ${piece.position.y} ${piece.player} ${
         piece.isPromoted ? '*' : ''
       }`
@@ -237,12 +237,12 @@ export class CheckersComponent implements OnInit {
     this.selectingPiece = null;
     this.possibleMoves = [];
     this.possibleAttacks = [];
-    this.logMessages.push(`Deselected`);
+    this.logMessages.unshift(`Deselected`);
   }
 
   endTurn(): void {
     this.chainAttackingPiece = null;
-    this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
+    this.logMessages.unshift(`${this.currentTurn.valueOf()}'s turn`);
     this.checkForceAttacks();
   }
 
@@ -255,7 +255,7 @@ export class CheckersComponent implements OnInit {
       this.calculatePossibleMoves(piece);
       if (this.possibleAttacks.length) {
         this.piecesWithAttackMoves.push(piece);
-        this.logMessages.push(
+        this.logMessages.unshift(
           `Piece with possible attack move(s): ${piece.position.x}, ${piece.position.y}
           `
         );
@@ -272,30 +272,31 @@ export class CheckersComponent implements OnInit {
   //     (piece) => piece.player === PLAYER.WHITE
   //   );
   //   if (!blackPieces.length) {
-  //     this.logMessages.push(`Player white win`);
+  //     this.logMessages.unshift(`Player white win`);
   //   } else if (!whitePieces.length) {
-  //     this.logMessages.push(`Player black win`);
+  //     this.logMessages.unshift(`Player black win`);
   //   } else {
   //     return;
   //   }
   //   this.resetGame();
-  //   this.logMessages.push(`-------------------------------`);
+  //   this.logMessages.unshift(`-------------------------------`);
   // }
 
   onPressedSurrender(): void {
+    if (this.currentTurn !== this.playerColor) {
+      this.logMessages.unshift(
+        'Please wait for another player to finish the turn'
+      );
+      return;
+    }
     if (window.confirm('Do you really want to surrender?')) {
-      // TODO: Move to BE
-      // this.deselectPiece();
-      // this.logMessages.push(`Player ${this.currentTurn} surrendered`);
-      // this.resetGame();
-      // this.logMessages.push(`-------------------------------`);
+      this.deselectPiece();
+      this.checkersService.move(this.roomId, {
+        player: { playerId: this.playerId, playerColor: this.playerColor },
+        moveType: MOVE_TYPE.SURRENDER,
+      });
     }
   }
-
-  // TODO: Move to BE
-  // resetGame(): void {
-  //   this.instantiatePieces();
-  // }
 
   interpretMessagesFromStream(move: IMoveResponse): void {
     console.log(move);
@@ -306,8 +307,8 @@ export class CheckersComponent implements OnInit {
     this.piecesWithAttackMoves = [];
     this.deselectPiece();
     if (move.moveType === MOVE_TYPE.GAME_START) {
-      this.logMessages.push(`Game start`);
-      this.logMessages.push(`${this.currentTurn.valueOf()}'s turn`);
+      this.logMessages.unshift(`Game start`);
+      this.logMessages.unshift(`${this.currentTurn.valueOf()}'s turn`);
       this.playerColor =
         this.playerId === move.currentTurn.playerId
           ? PLAYER.BLACK
@@ -322,6 +323,11 @@ export class CheckersComponent implements OnInit {
     ) {
       this.setChainAttack(move);
     }
+    if (move.moveType === MOVE_TYPE.SURRENDER) {
+      this.logMessages.unshift(
+        `Player ${move.currentTurn?.playerColor} surrendered!`
+      );
+    }
     this.changeDetectorRef.detectChanges();
   }
 
@@ -332,7 +338,7 @@ export class CheckersComponent implements OnInit {
     );
     if (!this.chainAttackingPiece) {
       const msg = 'Invalid force selecting message from the server';
-      this.logMessages.push(msg);
+      this.logMessages.unshift(msg);
       console.error(msg);
     } else this.selectPiece(this.chainAttackingPiece);
   }

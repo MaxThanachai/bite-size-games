@@ -45,9 +45,32 @@ export class CheckersLogic {
       currentTurn: null,
       moves: new ReplaySubject<IMove>(),
     } as IRoom;
-    newRoom.pieces = [];
+    // newRoom.pieces = [];
+    // for (let i = 0; i < 8; i++) {
+    //   newRoom.pieces.push({
+    //     player: PLAYER.BLACK,
+    //     isPromoted: false,
+    //     position: {
+    //       x: i,
+    //       y: 6 + (i % 2),
+    //     },
+    //   });
+    // }
+    // for (let i = 0; i < 8; i++) {
+    //   newRoom.pieces.push({
+    //     player: PLAYER.WHITE,
+    //     isPromoted: false,
+    //     position: { x: i, y: i % 2 },
+    //   });
+    // }
+    this.resetPieces(newRoom);
+    return newRoom;
+  }
+
+  resetPieces(room: IRoom): void {
+    room.pieces = [];
     for (let i = 0; i < 8; i++) {
-      newRoom.pieces.push({
+      room.pieces.push({
         player: PLAYER.BLACK,
         isPromoted: false,
         position: {
@@ -57,13 +80,12 @@ export class CheckersLogic {
       });
     }
     for (let i = 0; i < 8; i++) {
-      newRoom.pieces.push({
+      room.pieces.push({
         player: PLAYER.WHITE,
         isPromoted: false,
         position: { x: i, y: i % 2 },
       });
     }
-    return newRoom;
   }
 
   calculatePossibleMoves(
@@ -220,6 +242,20 @@ export class CheckersLogic {
   checkChainAttack(movingPiece: IPiece, room: IRoom): boolean {
     const { possibleAttacks } = this.calculatePossibleMoves(movingPiece, room);
     return possibleAttacks.length > 0;
+  }
+
+  onSurrender(move: IMove, room: IRoom): void {
+    this.resetPieces(room);
+    room.moves.next({
+      moveType: MOVE_TYPE.SURRENDER,
+      currentTurn: room.currentTurn,
+      pieces: room.pieces,
+    });
+    room.moves.next({
+      moveType: MOVE_TYPE.GAME_START,
+      currentTurn: room.currentTurn,
+      pieces: room.pieces,
+    });
   }
 
   getDirection(piece: IPiece): number {

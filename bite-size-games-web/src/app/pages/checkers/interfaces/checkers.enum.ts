@@ -8,4 +8,5 @@ export enum MOVE_TYPE {
   MOVE = 'MOVE',
   ATTACK = 'ATTACK',
   END_TURN = 'END TURN',
+  SURRENDER = 'SURRENDER',
 }

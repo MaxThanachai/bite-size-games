@@ -73,6 +73,9 @@ export class CheckersController {
       this.checkersLogic.isValidMove(body, thisRoom);
       this.checkersLogic.onMove(body, thisRoom);
     }
+    if (body.moveType === MOVE_TYPE.SURRENDER) {
+      this.checkersLogic.onSurrender(body, thisRoom);
+    }
     return true;
   }
 }
