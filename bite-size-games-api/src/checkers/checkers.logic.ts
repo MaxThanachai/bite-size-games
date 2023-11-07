@@ -7,6 +7,7 @@ import {
   IAttackGrid,
   IMove,
   IPiece,
+  IPlayer,
   IPosition,
   IRoom,
 } from './checkers.interface';
@@ -45,26 +46,35 @@ export class CheckersLogic {
       currentTurn: null,
       moves: new ReplaySubject<IMove>(),
     } as IRoom;
-    // newRoom.pieces = [];
-    // for (let i = 0; i < 8; i++) {
-    //   newRoom.pieces.push({
-    //     player: PLAYER.BLACK,
-    //     isPromoted: false,
-    //     position: {
-    //       x: i,
-    //       y: 6 + (i % 2),
-    //     },
-    //   });
-    // }
-    // for (let i = 0; i < 8; i++) {
-    //   newRoom.pieces.push({
-    //     player: PLAYER.WHITE,
-    //     isPromoted: false,
-    //     position: { x: i, y: i % 2 },
-    //   });
-    // }
     this.resetPieces(newRoom);
     return newRoom;
+  }
+
+  addPlayerToRoom(playerId: string, room: IRoom): void {
+    if (room.players.length >= 2 && !this.isPlayerInRoom(playerId, room)) {
+      throw new Error(`Room id ${room.id} is full!`);
+    }
+    const player: IPlayer = {
+      playerId,
+      playerColor: room.players.length === 0 ? PLAYER.BLACK : PLAYER.WHITE,
+    };
+    room.players.push(player);
+    room.moves.next({
+      moveType: MOVE_TYPE.JOIN_ROOM,
+      currentTurn: player,
+    } as IMove);
+
+    if (room.players.length === 2) {
+      room.moves.next({
+        moveType: MOVE_TYPE.GAME_START,
+        currentTurn: room.players[0],
+        pieces: room.pieces,
+      } as IMove);
+      room.moves.subscribe((move) => {
+        if (!move.currentTurn) return;
+        room.currentTurn = move.currentTurn;
+      });
+    }
   }
 
   resetPieces(room: IRoom): void {
@@ -226,6 +236,7 @@ export class CheckersLogic {
       currentTurn: nextPlayer,
       pieces: room.pieces,
     });
+    this.checkGameEnded(room);
   }
 
   checkPromoted(piece: IPiece): void {
@@ -244,7 +255,7 @@ export class CheckersLogic {
     return possibleAttacks.length > 0;
   }
 
-  onSurrender(move: IMove, room: IRoom): void {
+  onSurrender(room: IRoom): void {
     this.resetPieces(room);
     room.moves.next({
       moveType: MOVE_TYPE.SURRENDER,
@@ -256,6 +267,38 @@ export class CheckersLogic {
       currentTurn: room.currentTurn,
       pieces: room.pieces,
     });
+  }
+
+  checkGameEnded(room: IRoom): void {
+    const blackPieces = room.pieces.filter(
+      (piece) => piece.player === PLAYER.BLACK,
+    );
+    const whitePieces = room.pieces.filter(
+      (piece) => piece.player === PLAYER.WHITE,
+    );
+    if (!blackPieces.length || !whitePieces.length) {
+      const winningColor = blackPieces.length ? PLAYER.BLACK : PLAYER.WHITE;
+      const losingColor = blackPieces.length ? PLAYER.WHITE : PLAYER.BLACK;
+      const winningPlayer = this.getPlayerByColor(winningColor, room);
+      const losingPlayer = this.getPlayerByColor(losingColor, room);
+      room.moves.next({
+        moveType: MOVE_TYPE.GAME_END,
+        currentTurn: winningPlayer,
+        pieces: room.pieces,
+      });
+      this.resetPieces(room);
+      room.moves.next({
+        moveType: MOVE_TYPE.GAME_START,
+        currentTurn: losingPlayer,
+        pieces: room.pieces,
+      });
+    } else {
+      return;
+    }
+  }
+
+  getPlayerByColor(color: PLAYER, room: IRoom): IPlayer {
+    return room.players.find((player) => player.playerColor === color);
   }
 
   getDirection(piece: IPiece): number {

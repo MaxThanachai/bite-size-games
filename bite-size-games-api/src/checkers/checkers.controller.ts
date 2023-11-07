@@ -31,34 +31,7 @@ export class CheckersController {
   ): Observable<string> {
     const thisRoom = this.rooms.find((room) => room.id === roomId);
     if (!thisRoom) throw new Error(`Room id ${roomId} not found`);
-    if (
-      thisRoom.players.length > 1 &&
-      !this.checkersLogic.isPlayerInRoom(playerId, thisRoom)
-    ) {
-      throw new Error(`Room id ${roomId} is full!`);
-    }
-    if (thisRoom.players.length === 0) {
-      const player = {
-        playerId,
-        playerColor: PLAYER.BLACK,
-      };
-      thisRoom.players.push(player);
-    } else if (thisRoom.players.length === 1) {
-      const player = {
-        playerId,
-        playerColor: PLAYER.WHITE,
-      };
-      thisRoom.players.push(player);
-      thisRoom.moves.next({
-        moveType: MOVE_TYPE.GAME_START,
-        currentTurn: thisRoom.players[0],
-        pieces: thisRoom.pieces,
-      } as IMove);
-      thisRoom.moves.subscribe((move) => {
-        if (!move.currentTurn) return;
-        thisRoom.currentTurn = move.currentTurn;
-      });
-    }
+    this.checkersLogic.addPlayerToRoom(playerId, thisRoom);
     return thisRoom.moves.pipe(map((move) => JSON.stringify(move)));
   }
 
@@ -74,7 +47,7 @@ export class CheckersController {
       this.checkersLogic.onMove(body, thisRoom);
     }
     if (body.moveType === MOVE_TYPE.SURRENDER) {
-      this.checkersLogic.onSurrender(body, thisRoom);
+      this.checkersLogic.onSurrender(thisRoom);
     }
     return true;
   }

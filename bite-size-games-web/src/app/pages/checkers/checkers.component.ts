@@ -263,25 +263,6 @@ export class CheckersComponent implements OnInit {
     });
   }
 
-  // TODO: Move to BE
-  // checkGameEnded(): void {
-  //   const blackPieces = this.pieces.filter(
-  //     (piece) => piece.player === PLAYER.BLACK
-  //   );
-  //   const whitePieces = this.pieces.filter(
-  //     (piece) => piece.player === PLAYER.WHITE
-  //   );
-  //   if (!blackPieces.length) {
-  //     this.logMessages.unshift(`Player white win`);
-  //   } else if (!whitePieces.length) {
-  //     this.logMessages.unshift(`Player black win`);
-  //   } else {
-  //     return;
-  //   }
-  //   this.resetGame();
-  //   this.logMessages.unshift(`-------------------------------`);
-  // }
-
   onPressedSurrender(): void {
     if (this.currentTurn !== this.playerColor) {
       this.logMessages.unshift(
@@ -306,13 +287,15 @@ export class CheckersComponent implements OnInit {
     this.possibleAttacks = [];
     this.piecesWithAttackMoves = [];
     this.deselectPiece();
+    if (
+      move.moveType === MOVE_TYPE.JOIN_ROOM &&
+      move.currentTurn.playerId === this.playerId
+    ) {
+      this.playerColor = move.currentTurn.playerColor;
+    }
     if (move.moveType === MOVE_TYPE.GAME_START) {
       this.logMessages.unshift(`Game start`);
       this.logMessages.unshift(`${this.currentTurn.valueOf()}'s turn`);
-      this.playerColor =
-        this.playerId === move.currentTurn.playerId
-          ? PLAYER.BLACK
-          : PLAYER.WHITE;
     }
     if (move.moveType === MOVE_TYPE.END_TURN) {
       this.endTurn();
@@ -327,6 +310,9 @@ export class CheckersComponent implements OnInit {
       this.logMessages.unshift(
         `Player ${move.currentTurn?.playerColor} surrendered!`
       );
+    }
+    if (move.moveType === MOVE_TYPE.GAME_END) {
+      this.logMessages.unshift(`Player ${move.currentTurn?.playerColor} win!`);
     }
     this.changeDetectorRef.detectChanges();
   }
